@@ -1,0 +1,35 @@
+[project]
+name = "mapsparser"
+version = "0.1.0"
+description = "Organisations from 2GIS and Yandex Maps into Excel: contacts and what each firm is missing"
+requires-python = ">=3.12"
+dependencies = ["requests", "openpyxl", "customtkinter", "pillow"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["mapsparser*"]
+
+[tool.setuptools.package-data]
+mapsparser = ["data/*.json", "templates/*.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RET", "ARG", "PTH", "RUF"]
+ignore = [
+    "RUF001", # кириллица в строках линтеру кажется латиницей
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ARG001", "ARG002"]  # поддельные клиенты в тестах используют не все аргументы
