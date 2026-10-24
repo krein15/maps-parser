@@ -34,16 +34,21 @@ def main() -> int:
     app._set_appearance("Светлая" if mode == "light" else "Тёмная")
     set_entry(app.city, CITY.name)
     set_entry(app.query, "кофейня")
-    app._show_places(demo_result())
-    app.tabs.set(tab)
+
+    def prepare() -> None:
+        # Прокручиваемую вкладку наполняем после старта окна: до mainloop её холст
+        # ещё не разложен, и на снимок попадает пустое место.
+        app._show_places(demo_result())
+        app.tabs.set(tab)
 
     def shoot() -> None:
-        app.update_idletasks()
+        app.update()
         window_capture.save(app, target)
         print(f"Снимок: {target}")
         app.destroy()
 
-    app.after(1200, shoot)
+    app.after(400, prepare)
+    app.after(1800, shoot)
     app.mainloop()
     return 0
 
