@@ -88,6 +88,11 @@ def run(
 
     with Fetcher(delay=settings.delay, cache=cache, log=say, stop=stop) as fetcher:
         for source in settings.sources:
+            if stop and stop():
+                # Кнопку «Остановить» нажали между картами: ко второй уже не идём.
+                result.stopped = True
+                say("Остановлено. Сохраняю то, что успели собрать.")
+                break
             say(f"— {source.title}: ищу «{settings.query}» в городе {settings.city.name}")
             collector = source.make(fetcher, log=say)
             request = SearchRequest(

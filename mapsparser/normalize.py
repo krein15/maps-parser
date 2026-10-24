@@ -156,7 +156,9 @@ def classify_website(raw: str) -> tuple[str, str]:
     address = unwrap_redirect((raw or "").strip())
     kind = social_kind(address)
     if kind != OTHER:
-        return kind, address.split("?", 1)[0].strip()
+        value = address.split("?", 1)[0].strip()
+        # «t.me/olaola» без схемы в отчёте не кликается — дописываем её.
+        return kind, value if "://" in value else f"https://{value}"
     return WEBSITE, website(address)
 
 

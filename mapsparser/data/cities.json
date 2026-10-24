@@ -13,6 +13,18 @@
    "region_id": "108"
   },
   {
+   "name": "Архангельск",
+   "alias": "arkhangelsk",
+   "region": "Архангельская область",
+   "region_id": "49"
+  },
+  {
+   "name": "Астрахань",
+   "alias": "astrakhan",
+   "region": "Астраханская область",
+   "region_id": "8"
+  },
+  {
    "name": "Балаково",
    "alias": "balakovo",
    "region": "Саратовская область",
@@ -104,7 +116,7 @@
   },
   {
    "name": "Елец",
-   "alias": "elec",
+   "alias": "elets",
    "region": "Липецкая область",
    "region_id": "126"
   },
@@ -223,6 +235,12 @@
    "region_id": "73"
   },
   {
+   "name": "Липецк",
+   "alias": "lipetsk",
+   "region": "Липецкая область",
+   "region_id": "56"
+  },
+  {
    "name": "Магадан",
    "alias": "magadan",
    "region": "Магаданская область",
@@ -233,6 +251,12 @@
    "alias": "magnitogorsk",
    "region": "Челябинская область",
    "region_id": "26"
+  },
+  {
+   "name": "Махачкала",
+   "alias": "makhachkala",
+   "region": "Дагестан",
+   "region_id": "113"
   },
   {
    "name": "Москва",
@@ -281,6 +305,12 @@
    "alias": "n_novgorod",
    "region": "Нижегородская область",
    "region_id": "19"
+  },
+  {
+   "name": "Новокузнецк",
+   "alias": "novokuznetsk",
+   "region": "Кемеровская область",
+   "region_id": "6"
   },
   {
    "name": "Новороссийск",
@@ -367,6 +397,12 @@
    "region_id": "24"
   },
   {
+   "name": "Рубцовск",
+   "alias": "rubtsovsk",
+   "region": "Алтайский край",
+   "region_id": "143"
+  },
+  {
    "name": "Рыбинск",
    "alias": "rybinsk",
    "region": "Ярославская область",
@@ -377,6 +413,12 @@
    "alias": "ryazan",
    "region": "Рязанская область",
    "region_id": "44"
+  },
+  {
+   "name": "Салехард",
+   "alias": "salekhard",
+   "region": "Ямало-Ненецкий автономный округ",
+   "region_id": "160"
   },
   {
    "name": "Самара",
@@ -500,9 +542,21 @@
   },
   {
    "name": "Ухта",
-   "alias": "uhta",
+   "alias": "ukhta",
    "region": "Коми",
    "region_id": "204"
+  },
+  {
+   "name": "Хабаровск",
+   "alias": "khabarovsk",
+   "region": "Хабаровский край",
+   "region_id": "35"
+  },
+  {
+   "name": "Хасавюрт",
+   "alias": "khasavyurt",
+   "region": "Дагестан",
+   "region_id": "151"
   },
   {
    "name": "Чебоксары",
@@ -529,10 +583,22 @@
    "region_id": "64"
   },
   {
+   "name": "Шахты",
+   "alias": "shakhty",
+   "region": "Ростовская область",
+   "region_id": "152"
+  },
+  {
    "name": "Элиста",
    "alias": "elista",
    "region": "Калмыкия",
    "region_id": "153"
+  },
+  {
+   "name": "Южно-Сахалинск",
+   "alias": "yuzhnosakhalinsk",
+   "region": "Сахалинская область",
+   "region_id": "88"
   },
   {
    "name": "Якутск",
