@@ -35,7 +35,7 @@ class City:
 _LETTERS = {
     "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "e", "ж": "zh",
     "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m", "н": "n", "о": "o",
-    "п": "p", "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "h", "ц": "c",
+    "п": "p", "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "kh", "ц": "ts",
     "ч": "ch", "ш": "sh", "щ": "sch", "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu",
     "я": "ya", "-": "_", " ": "_",
 }
@@ -50,6 +50,10 @@ def alias_candidates(name: str) -> list[str]:
     """Варианты короткого имени для 2ГИС, от самого вероятного к менее."""
     base = transliterate(name)
     variants = [base, base.replace("_", ""), base.replace("_", "-")]
+    # Старые имена 2ГИС встречаются и в другой латинице: «h» вместо «kh», «c» вместо «ts».
+    plain = base.replace("kh", "h").replace("ts", "c")
+    if plain != base:
+        variants += [plain, plain.replace("_", "")]
     if base.startswith("nizhniy_"):
         variants.insert(0, "n_" + base.removeprefix("nizhniy_"))
     if base.startswith("velikiy_"):

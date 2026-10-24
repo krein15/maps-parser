@@ -1,0 +1,550 @@
+{
+ "cities": [
+  {
+   "name": "Абакан",
+   "alias": "abakan",
+   "region": "Хакасия",
+   "region_id": "69"
+  },
+  {
+   "name": "Альметьевск",
+   "alias": "almetevsk",
+   "region": "Татарстан",
+   "region_id": "108"
+  },
+  {
+   "name": "Балаково",
+   "alias": "balakovo",
+   "region": "Саратовская область",
+   "region_id": "121"
+  },
+  {
+   "name": "Барнаул",
+   "alias": "barnaul",
+   "region": "Алтайский край",
+   "region_id": "4"
+  },
+  {
+   "name": "Белгород",
+   "alias": "belgorod",
+   "region": "Белгородская область",
+   "region_id": "46"
+  },
+  {
+   "name": "Бийск",
+   "alias": "biysk",
+   "region": "Алтайский край",
+   "region_id": "20"
+  },
+  {
+   "name": "Братск",
+   "alias": "bratsk",
+   "region": "Иркутская область",
+   "region_id": "51"
+  },
+  {
+   "name": "Брянск",
+   "alias": "bryansk",
+   "region": "Брянская область",
+   "region_id": "62"
+  },
+  {
+   "name": "Великий Новгород",
+   "alias": "v_novgorod",
+   "region": "Новгородская область",
+   "region_id": "77"
+  },
+  {
+   "name": "Владивосток",
+   "alias": "vladivostok",
+   "region": "Приморский край",
+   "region_id": "25"
+  },
+  {
+   "name": "Владикавказ",
+   "alias": "vladikavkaz",
+   "region": "Северная Осетия",
+   "region_id": "114"
+  },
+  {
+   "name": "Владимир",
+   "alias": "vladimir",
+   "region": "Владимирская область",
+   "region_id": "59"
+  },
+  {
+   "name": "Волгоград",
+   "alias": "volgograd",
+   "region": "Волгоградская область",
+   "region_id": "33"
+  },
+  {
+   "name": "Волгодонск",
+   "alias": "volgodonsk",
+   "region": "Ростовская область",
+   "region_id": "122"
+  },
+  {
+   "name": "Вологда",
+   "alias": "vologda",
+   "region": "Вологодская область",
+   "region_id": "78"
+  },
+  {
+   "name": "Воронеж",
+   "alias": "voronezh",
+   "region": "Воронежская область",
+   "region_id": "31"
+  },
+  {
+   "name": "Екатеринбург",
+   "alias": "ekaterinburg",
+   "region": "Свердловская область",
+   "region_id": "9"
+  },
+  {
+   "name": "Елец",
+   "alias": "elec",
+   "region": "Липецкая область",
+   "region_id": "126"
+  },
+  {
+   "name": "Иваново",
+   "alias": "ivanovo",
+   "region": "Ивановская область",
+   "region_id": "65"
+  },
+  {
+   "name": "Ижевск",
+   "alias": "izhevsk",
+   "region": "Удмуртия",
+   "region_id": "41"
+  },
+  {
+   "name": "Иркутск",
+   "alias": "irkutsk",
+   "region": "Иркутская область",
+   "region_id": "11"
+  },
+  {
+   "name": "Ишим",
+   "alias": "ishim",
+   "region": "Тюменская область",
+   "region_id": "205"
+  },
+  {
+   "name": "Йошкар-Ола",
+   "alias": "yoshkarola",
+   "region": "Марий Эл",
+   "region_id": "70"
+  },
+  {
+   "name": "Казань",
+   "alias": "kazan",
+   "region": "Татарстан",
+   "region_id": "21"
+  },
+  {
+   "name": "Калининград",
+   "alias": "kaliningrad",
+   "region": "Калининградская область",
+   "region_id": "40"
+  },
+  {
+   "name": "Калуга",
+   "alias": "kaluga",
+   "region": "Калужская область",
+   "region_id": "61"
+  },
+  {
+   "name": "Камышин",
+   "alias": "kamyshin",
+   "region": "Волгоградская область",
+   "region_id": "127"
+  },
+  {
+   "name": "Кемерово",
+   "alias": "kemerovo",
+   "region": "Кемеровская область",
+   "region_id": "5"
+  },
+  {
+   "name": "Киров",
+   "alias": "kirov",
+   "region": "Кировская область",
+   "region_id": "58"
+  },
+  {
+   "name": "Ковров",
+   "alias": "kovrov",
+   "region": "Владимирская область",
+   "region_id": "129"
+  },
+  {
+   "name": "Когалым",
+   "alias": "kogalym",
+   "region": "Ханты-Мансийский автономный округ",
+   "region_id": "207"
+  },
+  {
+   "name": "Комсомольск-на-Амуре",
+   "alias": "komsomolsk",
+   "region": "Хабаровский край",
+   "region_id": "94"
+  },
+  {
+   "name": "Кострома",
+   "alias": "kostroma",
+   "region": "Костромская область",
+   "region_id": "34"
+  },
+  {
+   "name": "Краснодар",
+   "alias": "krasnodar",
+   "region": "Краснодарский край",
+   "region_id": "23"
+  },
+  {
+   "name": "Красноярск",
+   "alias": "krasnoyarsk",
+   "region": "Красноярский край",
+   "region_id": "7"
+  },
+  {
+   "name": "Курган",
+   "alias": "kurgan",
+   "region": "Курганская область",
+   "region_id": "10"
+  },
+  {
+   "name": "Курск",
+   "alias": "kursk",
+   "region": "Курская область",
+   "region_id": "73"
+  },
+  {
+   "name": "Магадан",
+   "alias": "magadan",
+   "region": "Магаданская область",
+   "region_id": "158"
+  },
+  {
+   "name": "Магнитогорск",
+   "alias": "magnitogorsk",
+   "region": "Челябинская область",
+   "region_id": "26"
+  },
+  {
+   "name": "Москва",
+   "alias": "moscow",
+   "region": "Москва",
+   "region_id": "32"
+  },
+  {
+   "name": "Муром",
+   "alias": "murom",
+   "region": "Владимирская область",
+   "region_id": "132"
+  },
+  {
+   "name": "Назрань",
+   "alias": "nazran",
+   "region": "Ингушетия",
+   "region_id": "154"
+  },
+  {
+   "name": "Нальчик",
+   "alias": "nalchik",
+   "region": "Кабардино-Балкария",
+   "region_id": "134"
+  },
+  {
+   "name": "Находка",
+   "alias": "nahodka",
+   "region": "Приморский край",
+   "region_id": "82"
+  },
+  {
+   "name": "Невинномысск",
+   "alias": "nevinnomyssk",
+   "region": "Ставропольский край",
+   "region_id": "135"
+  },
+  {
+   "name": "Нижневартовск",
+   "alias": "nizhnevartovsk",
+   "region": "Ханты-Мансийский автономный округ",
+   "region_id": "12"
+  },
+  {
+   "name": "Нижний Новгород",
+   "alias": "n_novgorod",
+   "region": "Нижегородская область",
+   "region_id": "19"
+  },
+  {
+   "name": "Новороссийск",
+   "alias": "novorossiysk",
+   "region": "Краснодарский край",
+   "region_id": "74"
+  },
+  {
+   "name": "Новосибирск",
+   "alias": "novosibirsk",
+   "region": "Новосибирская область",
+   "region_id": "1"
+  },
+  {
+   "name": "Новочеркасск",
+   "alias": "novocherkassk",
+   "region": "Ростовская область",
+   "region_id": "137"
+  },
+  {
+   "name": "Норильск",
+   "alias": "norilsk",
+   "region": "Красноярский край",
+   "region_id": "76"
+  },
+  {
+   "name": "Ноябрьск",
+   "alias": "noyabrsk",
+   "region": "Ямало-Ненецкий автономный округ",
+   "region_id": "103"
+  },
+  {
+   "name": "Омск",
+   "alias": "omsk",
+   "region": "Омская область",
+   "region_id": "2"
+  },
+  {
+   "name": "Оренбург",
+   "alias": "orenburg",
+   "region": "Оренбургская область",
+   "region_id": "48"
+  },
+  {
+   "name": "Орск",
+   "alias": "orsk",
+   "region": "Оренбургская область",
+   "region_id": "142"
+  },
+  {
+   "name": "Орёл",
+   "alias": "orel",
+   "region": "Орловская область",
+   "region_id": "71"
+  },
+  {
+   "name": "Пенза",
+   "alias": "penza",
+   "region": "Пензенская область",
+   "region_id": "42"
+  },
+  {
+   "name": "Пермь",
+   "alias": "perm",
+   "region": "Пермский край",
+   "region_id": "16"
+  },
+  {
+   "name": "Петрозаводск",
+   "alias": "petrozavodsk",
+   "region": "Карелия",
+   "region_id": "80"
+  },
+  {
+   "name": "Псков",
+   "alias": "pskov",
+   "region": "Псковская область",
+   "region_id": "90"
+  },
+  {
+   "name": "Ростов-на-Дону",
+   "alias": "rostov",
+   "region": "Ростовская область",
+   "region_id": "24"
+  },
+  {
+   "name": "Рыбинск",
+   "alias": "rybinsk",
+   "region": "Ярославская область",
+   "region_id": "144"
+  },
+  {
+   "name": "Рязань",
+   "alias": "ryazan",
+   "region": "Рязанская область",
+   "region_id": "44"
+  },
+  {
+   "name": "Самара",
+   "alias": "samara",
+   "region": "Самарская область",
+   "region_id": "18"
+  },
+  {
+   "name": "Санкт-Петербург",
+   "alias": "spb",
+   "region": "Санкт-Петербург",
+   "region_id": "38"
+  },
+  {
+   "name": "Саранск",
+   "alias": "saransk",
+   "region": "Мордовия",
+   "region_id": "85"
+  },
+  {
+   "name": "Саратов",
+   "alias": "saratov",
+   "region": "Саратовская область",
+   "region_id": "43"
+  },
+  {
+   "name": "Смоленск",
+   "alias": "smolensk",
+   "region": "Смоленская область",
+   "region_id": "63"
+  },
+  {
+   "name": "Сочи",
+   "alias": "sochi",
+   "region": "Краснодарский край",
+   "region_id": "30"
+  },
+  {
+   "name": "Ставрополь",
+   "alias": "stavropol",
+   "region": "Ставропольский край",
+   "region_id": "57"
+  },
+  {
+   "name": "Стерлитамак",
+   "alias": "sterlitamak",
+   "region": "Башкортостан",
+   "region_id": "54"
+  },
+  {
+   "name": "Сургут",
+   "alias": "surgut",
+   "region": "Ханты-Мансийский автономный округ",
+   "region_id": "39"
+  },
+  {
+   "name": "Сыктывкар",
+   "alias": "syktyvkar",
+   "region": "Коми",
+   "region_id": "72"
+  },
+  {
+   "name": "Таганрог",
+   "alias": "taganrog",
+   "region": "Ростовская область",
+   "region_id": "116"
+  },
+  {
+   "name": "Тамбов",
+   "alias": "tambov",
+   "region": "Тамбовская область",
+   "region_id": "81"
+  },
+  {
+   "name": "Тверь",
+   "alias": "tver",
+   "region": "Тверская область",
+   "region_id": "47"
+  },
+  {
+   "name": "Тобольск",
+   "alias": "tobolsk",
+   "region": "Тюменская область",
+   "region_id": "97"
+  },
+  {
+   "name": "Томск",
+   "alias": "tomsk",
+   "region": "Томская область",
+   "region_id": "3"
+  },
+  {
+   "name": "Тула",
+   "alias": "tula",
+   "region": "Тульская область",
+   "region_id": "36"
+  },
+  {
+   "name": "Тюмень",
+   "alias": "tyumen",
+   "region": "Тюменская область",
+   "region_id": "13"
+  },
+  {
+   "name": "Улан-Удэ",
+   "alias": "ulanude",
+   "region": "Бурятия",
+   "region_id": "37"
+  },
+  {
+   "name": "Ульяновск",
+   "alias": "ulyanovsk",
+   "region": "Ульяновская область",
+   "region_id": "55"
+  },
+  {
+   "name": "Уфа",
+   "alias": "ufa",
+   "region": "Башкортостан",
+   "region_id": "17"
+  },
+  {
+   "name": "Ухта",
+   "alias": "uhta",
+   "region": "Коми",
+   "region_id": "204"
+  },
+  {
+   "name": "Чебоксары",
+   "alias": "cheboksary",
+   "region": "Чувашия",
+   "region_id": "53"
+  },
+  {
+   "name": "Челябинск",
+   "alias": "chelyabinsk",
+   "region": "Челябинская область",
+   "region_id": "15"
+  },
+  {
+   "name": "Черкесск",
+   "alias": "cherkessk",
+   "region": "Карачаево-Черкесия",
+   "region_id": "118"
+  },
+  {
+   "name": "Чита",
+   "alias": "chita",
+   "region": "Забайкальский край",
+   "region_id": "64"
+  },
+  {
+   "name": "Элиста",
+   "alias": "elista",
+   "region": "Калмыкия",
+   "region_id": "153"
+  },
+  {
+   "name": "Якутск",
+   "alias": "yakutsk",
+   "region": "Саха (Якутия)",
+   "region_id": "50"
+  },
+  {
+   "name": "Ярославль",
+   "alias": "yaroslavl",
+   "region": "Ярославская область",
+   "region_id": "28"
+  }
+ ]
+}
