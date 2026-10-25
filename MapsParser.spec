@@ -13,6 +13,7 @@ datas = [
     ("assets/icon.ico", "assets"),
     ("assets/brand/*.png", "assets/brand"),  # значок и логотип в шапке окна
     ("mapsparser/data/*.json", "mapsparser/data"),  # справочник городов 2ГИС
+    ("mapsparser/templates/*.toml", "mapsparser/templates"),  # готовые ниши
 ]
 datas += collect_data_files("customtkinter")  # темы и шрифты окна
 

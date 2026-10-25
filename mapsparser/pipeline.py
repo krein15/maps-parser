@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import gaps as gaps_module
+from . import niches as niches_module
 from .cache import Cache
 from .cities import City
 from .http import Fetcher, Stopped
@@ -39,7 +40,14 @@ class Settings:
     min_score: int = 0
     required_gaps: tuple[str, ...] = ()  # коды пробелов, без которых фирма не нужна
     check_sites: bool = True  # заходить на сайты фирм за почтами и состоянием сайта
+    queries: tuple[str, ...] = ()  # если пусто — берутся из ниши или из самого запроса
     site_limit: int = 400  # сколько сайтов проверять за один сбор
+
+    def all_queries(self) -> tuple[str, ...]:
+        """Запросы сбора: заданные прямо, иначе набор ниши, иначе само слово."""
+        if self.queries:
+            return self.queries
+        return niches_module.queries_for(self.query)
 
 
 @dataclass
@@ -90,6 +98,11 @@ def run(
     cache = Cache(settings.cache_dir or default_cache_dir(), settings.cache_hours) if settings.use_cache else None
     companies: list[Company] = []
 
+    queries = settings.all_queries()
+    if len(queries) > 1:
+        say(f"Ниша «{settings.query}» — это {len(queries)} запроса: {', '.join(queries)}")
+    per_query = niches_module.share(settings.limit, len(queries))
+
     with Fetcher(delay=settings.delay, cache=cache, log=say, stop=stop) as fetcher:
         for source in settings.sources:
             if stop and stop():
@@ -97,25 +110,34 @@ def run(
                 result.stopped = True
                 say("Остановлено. Сохраняю то, что успели собрать.")
                 break
-            say(f"— {source.title}: ищу «{settings.query}» в городе {settings.city.name}")
             collector = source.make(fetcher, log=say)
-            request = SearchRequest(
-                query=settings.query,
-                city=settings.city,
-                limit=settings.limit,
-                deep=settings.deep,
-                tiles=settings.tiles,
-            )
-            try:
-                report = collector.collect(request)
-            except Stopped:
-                result.stopped = True
-                say("Остановлено. Сохраняю то, что успели собрать.")
+            total = Report()
+            seen: set[str] = set()
+            for query in queries:
+                if stop and stop():
+                    result.stopped = True
+                    break
+                say(f"— {source.title}: ищу «{query}» в городе {settings.city.name}")
+                request = SearchRequest(
+                    query=query,
+                    city=settings.city,
+                    limit=per_query,
+                    deep=settings.deep,
+                    tiles=settings.tiles,
+                )
+                try:
+                    report = collector.collect(request)
+                except Stopped:
+                    result.stopped = True
+                    say("Остановлено. Сохраняю то, что успели собрать.")
+                    break
+                _absorb(total, report, seen)
+                if report.capped:
+                    say(f"— {source.title}: источник отдал всё, что показывает по запросу «{query}»")
+            result.reports[source.key] = total
+            companies.extend(total.companies)
+            if result.stopped:
                 break
-            result.reports[source.key] = report
-            companies.extend(report.companies)
-            if report.capped:
-                say(f"— {source.title}: источник отдал всё, что показывает по этому запросу")
 
     say(f"Сводим {len(companies)} карточек в фирмы…")
     places = merge(companies)
@@ -147,6 +169,20 @@ def run(
         f"Запросов к картам {result.requests}, времени {result.seconds:.0f} с."
     )
     return result
+
+
+def _absorb(total: Report, report: Report, seen: set[str]) -> None:
+    """Складывает отчёт одного запроса в общий, выбрасывая уже виденные организации."""
+    for company in report.companies:
+        if company.source_id not in seen:
+            seen.add(company.source_id)
+            total.companies.append(company)
+    total.requests += report.requests
+    total.pages += report.pages
+    total.cards += report.cards
+    total.capped = total.capped or report.capped
+    # Источник показал всё только если это верно для каждого запроса ниши.
+    total.exhaustive = report.exhaustive if total.pages == report.pages else (total.exhaustive and report.exhaustive)
 
 
 def _check_sites(

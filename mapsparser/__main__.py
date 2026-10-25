@@ -21,6 +21,8 @@ from .excel import write_default
 from .gaps import GAPS
 from .http import Stopped
 from .models import Place
+from .niches import find as find_niche
+from .niches import load_niches
 from .normalize import pretty_phone
 from .pipeline import Settings, run
 from .settings import APP_TITLE, BRAND, default_cache_dir, default_output_dir
@@ -50,9 +52,11 @@ def city_or_exit(name: str) -> City:
 
 def cmd_collect(args: argparse.Namespace) -> int:
     city = city_or_exit(args.city)
+    query, queries = _what_to_search(args)
     sources = [get(key) for key in args.source] if args.source else all_sources()
     settings = Settings(
-        query=args.query,
+        query=query,
+        queries=queries,
         city=city,
         sources=sources,
         limit=args.limit,
@@ -114,6 +118,33 @@ def _open_file(path: Path) -> None:
         print(f"Открыть файл не удалось: {exc}")
 
 
+def _what_to_search(args: argparse.Namespace) -> tuple[str, tuple[str, ...]]:
+    """Что искать: нишу целиком или одно слово."""
+    if args.niche:
+        niche = find_niche(args.niche)
+        if not niche:
+            known = ", ".join(n.name for n in load_niches())
+            print(f"Ниша «{args.niche}» не нашлась. Есть: {known}", file=sys.stderr)
+            raise SystemExit(2)
+        return niche.name, niche.queries
+    if not args.query:
+        print("Укажите, кого ищем: --query «кофейня» или --niche «Автосервисы»", file=sys.stderr)
+        raise SystemExit(2)
+    return args.query, ()
+
+
+def cmd_niches(_args: argparse.Namespace) -> int:
+    found = load_niches()
+    for niche in found:
+        print(f"  {niche.name}")
+        print(f"      {', '.join(niche.queries)}")
+        if niche.note:
+            print(f"      — {niche.note}")
+    print()
+    print(f"Всего ниш: {len(found)}. Свои правятся в mapsparser/templates/*.toml")
+    return 0
+
+
 def cmd_cities(args: argparse.Namespace) -> int:
     cities = suggest(args.prefix, 500) if args.prefix else all_cities()
     if not cities:
@@ -160,7 +191,8 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command")
 
     collect = commands.add_parser("collect", help="собрать организации и сделать отчёт")
-    collect.add_argument("-q", "--query", required=True, help="что ищем: «кофейня», «автосервис»")
+    collect.add_argument("-q", "--query", help="что ищем: «кофейня», «автосервис»")
+    collect.add_argument("-n", "--niche", help="готовая ниша: несколько запросов разом (список — команда niches)")
     collect.add_argument("-c", "--city", required=True, help="город: «Тюмень»")
     collect.add_argument(
         "-s", "--source", action="append", choices=source_keys(), help="только эта карта (можно повторять)"
@@ -188,6 +220,7 @@ def build_parser() -> argparse.ArgumentParser:
     cities.add_argument("prefix", nargs="?", default="", help="первые буквы названия")
     cities.set_defaults(func=cmd_cities)
 
+    commands.add_parser("niches", help="готовые ниши и их запросы").set_defaults(func=cmd_niches)
     commands.add_parser("sources", help="какие карты подключены").set_defaults(func=cmd_sources)
     commands.add_parser("gaps", help="какие пробелы умеет находить").set_defaults(func=cmd_gaps)
 
