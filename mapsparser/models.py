@@ -137,10 +137,22 @@ class SiteReport:
         return self.reachable and not self.parked
 
     @property
+    def bad_certificate(self) -> bool:
+        """Браузер показывает на таком сайте страшное предупреждение — повод для разговора."""
+        return "SSL" in self.error or "Certificate" in self.error
+
+    @property
+    def timed_out(self) -> bool:
+        """Сайт не ответил. Это слабее, чем «ответил ошибкой»: дело может быть и в дороге до него."""
+        return "Timeout" in self.error
+
+    @property
     def summary(self) -> str:
         """Короткая строка для отчёта: что с сайтом не так."""
+        if self.bad_certificate:
+            return "ошибка сертификата"
         if not self.reachable:
-            return f"не открывается ({self.error or self.status})"
+            return f"не ответил ({self.error})" if self.timed_out else f"не открывается ({self.error or self.status})"
         if self.parked:
             return "заглушка вместо сайта"
         notes = []

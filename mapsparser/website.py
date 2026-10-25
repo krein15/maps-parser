@@ -28,6 +28,7 @@ MAX_PAGES_PER_SITE = 2
 # Мёртвый сайт узнаётся по тому, что он не ответил, и ждать его дольше смысла нет:
 # на сотне фирм каждая лишняя секунда ожидания — это лишние полторы минуты сбора.
 CHECK_TIMEOUT = 8.0
+SLOW_TIMEOUT = 20.0  # второй, долгий шанс для сайта, который промолчал
 SITE_PAUSE = 0.2  # вежливость считается на хост, а сайты у всех фирм разные
 
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
@@ -154,7 +155,14 @@ def check(url: str, fetcher: Fetcher) -> SiteReport:
     try:
         page = fetcher.probe(url, timeout=CHECK_TIMEOUT)
     except FetchError as exc:
-        return SiteReport(url=url, error=str(exc), checked_at=now, pages=1)
+        if "Timeout" not in str(exc):
+            return SiteReport(url=url, error=str(exc), checked_at=now, pages=1)
+        # Молчание — слабая улика: дело бывает не в сайте, а в дороге до него.
+        # Прежде чем записывать фирму в мёртвые, даём сайту второй, долгий шанс.
+        try:
+            page = fetcher.probe(url, timeout=SLOW_TIMEOUT)
+        except FetchError as slow:
+            return SiteReport(url=url, error=str(slow), checked_at=now, pages=2)
 
     if not page.ok:
         return SiteReport(

@@ -76,7 +76,11 @@ def _no_email(place: Place, context: Context) -> bool:
 
 def _site_dead(place: Place, _context: Context) -> bool:
     """Сайт у фирмы есть, но он не открывается или это заглушка хостера."""
-    return place.site is not None and not place.site.alive
+    return place.site is not None and not place.site.alive and not place.site.bad_certificate
+
+
+def _site_bad_certificate(place: Place, _context: Context) -> bool:
+    return place.site is not None and place.site.bad_certificate
 
 
 def _site_no_https(place: Place, _context: Context) -> bool:
@@ -148,6 +152,10 @@ GAPS: tuple[Gap, ...] = (
     # Неработающий сайт — повод к разговору сильнее, чем его отсутствие: фирма уже платит
     # за хостинг и домен, просто не знает, что посетители туда не попадают.
     Gap("site_dead", "сайт не открывается", 28, _site_dead, "за домен платят, а сайта нет — поднять"),
+    Gap(
+        "site_cert", "ошибка сертификата на сайте", 18, _site_bad_certificate,
+        "браузер встречает посетителя красным предупреждением",
+    ),
     Gap("site_no_https", "сайт без https", 10, _site_no_https, "браузеры метят такой сайт небезопасным"),
     Gap("site_not_mobile", "сайт не для телефона", 14, _site_not_mobile, "с телефона заходит большинство"),
     Gap("site_no_form", "на сайте нет формы заявки", 8, _site_no_form, "заявку оставить негде"),

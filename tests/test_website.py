@@ -170,3 +170,49 @@ def test_parked_site_counts_as_missing() -> None:
 def test_link_kinds_used_by_the_pipeline_exist() -> None:
     assert EMAIL == "email"
     assert PHONE == "phone"
+
+
+class SlowSite:
+    """Сайт, который молчит первый раз и отвечает со второго."""
+
+    def __init__(self, answer: Page | None) -> None:
+        self.answer = answer
+        self.timeouts: list[float] = []
+
+    def probe(self, url: str, *, timeout: float = 10.0) -> Page:
+        from mapsparser.http import FetchError
+
+        self.timeouts.append(timeout)
+        if len(self.timeouts) == 1 or self.answer is None:
+            raise FetchError("ReadTimeout")
+        return self.answer
+
+
+def test_a_silent_site_gets_a_second_longer_chance() -> None:
+    """Молчание бывает не из-за сайта, а из-за дороги до него: сразу хоронить рано."""
+    site = SlowSite(page(LIVE_PAGE))
+    report = check("https://ola-ola.ru", site)
+    assert report.alive is True
+    assert site.timeouts[1] > site.timeouts[0]
+
+
+def test_a_site_silent_twice_is_counted_as_not_answering() -> None:
+    site = SlowSite(None)
+    report = check("https://ola-ola.ru", site)
+    assert report.reachable is False
+    assert report.timed_out is True
+    assert report.summary == "не ответил (ReadTimeout)"
+
+
+def test_a_broken_certificate_is_told_apart_from_a_dead_site() -> None:
+    """Красное предупреждение браузера — верная улика, в отличие от молчания."""
+
+    class BadCertificate:
+        def probe(self, url: str, *, timeout: float = 10.0) -> Page:
+            from mapsparser.http import FetchError
+
+            raise FetchError("SSLError")
+
+    report = check("https://ola-ola.ru", BadCertificate())
+    assert report.bad_certificate is True
+    assert report.summary == "ошибка сертификата"
