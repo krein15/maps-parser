@@ -104,6 +104,51 @@ class Link:
 
 
 @dataclass(frozen=True)
+class SiteReport:
+    """Что выяснилось про сайт фирмы, когда программа на него зашла.
+
+    Живёт здесь, а не рядом с проверкой: проверка опирается на нормализацию контактов,
+    а та — на эти же модели, и общий тип данных не должен замыкать круг импортов.
+    """
+
+    url: str
+    reachable: bool = False
+    status: int | None = None
+    final_url: str = ""
+    https: bool = False
+    mobile: bool = False  # есть мета viewport — сайт свёрстан под телефон
+    form: bool = False  # есть форма заявки или виджет чата
+    parked: bool = False  # заглушка хостера вместо сайта
+    title: str = ""
+    emails: tuple[str, ...] = ()
+    phones: tuple[str, ...] = ()
+    error: str = ""
+    pages: int = 0
+    checked_at: datetime | None = None
+
+    @property
+    def alive(self) -> bool:
+        """Сайт открылся и это действительно сайт, а не заглушка."""
+        return self.reachable and not self.parked
+
+    @property
+    def summary(self) -> str:
+        """Короткая строка для отчёта: что с сайтом не так."""
+        if not self.reachable:
+            return f"не открывается ({self.error or self.status})"
+        if self.parked:
+            return "заглушка вместо сайта"
+        notes = []
+        if not self.https:
+            notes.append("без https")
+        if not self.mobile:
+            notes.append("не для телефона")
+        if not self.form:
+            notes.append("без формы заявки")
+        return ", ".join(notes) if notes else "в порядке"
+
+
+@dataclass(frozen=True)
 class Company:
     """Организация глазами одного источника."""
 
@@ -163,6 +208,8 @@ class Place:
     lon: float | None = None
     rubrics: tuple[str, ...] = ()
     by_source: dict[str, Company] = field(default_factory=dict)
+    extra: tuple[Link, ...] = ()  # контакты, найденные не на картах, а на сайте фирмы
+    site: SiteReport | None = None
     gaps: tuple[str, ...] = ()
     score: int = 0
 
@@ -175,12 +222,20 @@ class Place:
         return tuple(self.by_source.values())
 
     def values(self, kind: str) -> tuple[str, ...]:
-        """Контакты одного вида из всех источников, без повторов."""
+        """Контакты одного вида из всех источников и с сайта фирмы, без повторов."""
         seen: dict[str, None] = {}
         for company in self.companies:
             for value in company.values(kind):
                 seen.setdefault(value, None)
+        for link in self.extra:
+            if link.kind == kind:
+                seen.setdefault(link.value, None)
         return tuple(seen)
+
+    def from_site(self, kind: str) -> tuple[str, ...]:
+        """Контакты, которых на картах не было, — их нашли на сайте фирмы."""
+        on_maps = {value for company in self.companies for value in company.values(kind)}
+        return tuple(link.value for link in self.extra if link.kind == kind and link.value not in on_maps)
 
     @property
     def phones(self) -> tuple[str, ...]:
@@ -197,8 +252,9 @@ class Place:
     @property
     def socials(self) -> tuple[Link, ...]:
         seen: dict[tuple[str, str], Link] = {}
-        for company in self.companies:
-            for link in company.socials:
+        from_maps = tuple(link for company in self.companies for link in company.socials)
+        for link in (*from_maps, *self.extra):
+            if link.kind in SOCIAL_KINDS:
                 seen.setdefault((link.kind, link.value), link)
         return tuple(seen.values())
 

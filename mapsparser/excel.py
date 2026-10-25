@@ -82,6 +82,7 @@ def columns(result: Result) -> list[Column]:
         Column("Телефон", 19, _phones, mono=True),
         Column("Почта", 26, lambda p: "\n".join(p.emails), mono=True),
         Column("Сайт", 30, lambda p: "\n".join(p.websites), mono=True),
+        Column("Что с сайтом", 24, lambda p: p.site.summary if p.site else "", wrap=True),
         Column("Соцсети и мессенджеры", 34, _socials, mono=True, wrap=True),
         Column("Рейтинг", 9, lambda p: p.rating),
         Column("Оценок", 9, lambda p: p.reviews or None),

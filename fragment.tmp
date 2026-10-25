@@ -1,0 +1,25 @@
+@dataclass(frozen=True)
+class SiteReport:
+    """Что выяснилось про сайт фирмы."""
+
+    url: str
+    reachable: bool = False
+    status: int | None = None
+    final_url: str = ""
+    https: bool = False
+    mobile: bool = False  # есть мета viewport — сайт свёрстан под телефон
+    form: bool = False  # есть форма заявки или виджет чата
+    parked: bool = False  # заглушка хостера вместо сайта
+    title: str = ""
+    emails: tuple[str, ...] = ()
+    phones: tuple[str, ...] = ()
+    error: str = ""
+    pages: int = 0
+    checked_at: datetime | None = field(default=None)
+
+    @property
+    def alive(self) -> bool:
+        """Сайт открылся и это действительно сайт, а не заглушка."""
+        return self.reachable and not self.parked
+
+

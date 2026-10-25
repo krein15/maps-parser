@@ -10,6 +10,7 @@ from __future__ import annotations
 import random
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 
 import requests
 
@@ -26,6 +27,19 @@ DEFAULT_HEADERS = {
     "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
     "Cache-Control": "no-cache",
 }
+
+
+@dataclass(frozen=True)
+class Page:
+    """Ответ страницы целиком: текст, код и адрес после всех переадресаций."""
+
+    text: str
+    status: int
+    url: str
+
+    @property
+    def ok(self) -> bool:
+        return 200 <= self.status < 400
 
 
 class FetchError(RuntimeError):
@@ -131,6 +145,22 @@ class Fetcher:
             return text
 
         raise FetchError(f"не удалось получить {url}: {last_error}")
+
+    def probe(self, url: str, *, timeout: float = 10.0) -> Page:
+        """Одна попытка без повторов: нужна для чужих сайтов.
+
+        Ошибку сервера здесь не считаем бедой — наоборот, неработающий сайт фирмы
+        это и есть результат проверки, поэтому код ответа возвращается как есть.
+        """
+        self.check_stop()
+        self._wait_turn()
+        self._last_request_at = time.monotonic()
+        try:
+            response = self.session.get(url, timeout=timeout, allow_redirects=True)
+        except requests.RequestException as exc:
+            raise FetchError(f"{type(exc).__name__}") from exc
+        self.requests_made += 1
+        return Page(text=response.text, status=response.status_code, url=response.url)
 
     def _retry_after(self, response: requests.Response, attempt: int) -> float:
         raw = response.headers.get("Retry-After", "")

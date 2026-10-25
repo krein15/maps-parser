@@ -16,9 +16,10 @@ from .cache import Cache
 from .cities import City
 from .http import Fetcher, Stopped
 from .merge import merge
-from .models import Company, Place
+from .models import EMAIL, PHONE, Company, Link, Place
 from .settings import default_cache_dir
 from .sources import Report, SearchRequest, Source, all_sources
+from .website import check as check_site
 
 
 @dataclass
@@ -37,6 +38,8 @@ class Settings:
     tiles: int = 0
     min_score: int = 0
     required_gaps: tuple[str, ...] = ()  # коды пробелов, без которых фирма не нужна
+    check_sites: bool = True  # заходить на сайты фирм за почтами и состоянием сайта
+    site_limit: int = 400  # сколько сайтов проверять за один сбор
 
 
 @dataclass
@@ -49,6 +52,7 @@ class Result:
     started_at: datetime | None = None
     finished_at: datetime | None = None
     stopped: bool = False
+    sites_checked: int = 0
     context: gaps_module.Context = field(default_factory=gaps_module.Context)
 
     @property
@@ -114,11 +118,22 @@ def run(
                 say(f"— {source.title}: источник отдал всё, что показывает по этому запросу")
 
     say(f"Сводим {len(companies)} карточек в фирмы…")
+    places = merge(companies)
+    checked = 0
+    if settings.check_sites and not result.stopped:
+        with Fetcher(delay=settings.delay / 3, retries=1, cache=cache, log=say, stop=stop) as fetcher:
+            try:
+                checked = _check_sites(places, settings, fetcher, say)
+            except Stopped:
+                result.stopped = True
+                say("Остановлено на проверке сайтов. Сохраняю собранное.")
+        result.sites_checked = checked
+
     context = gaps_module.Context(
         sources=tuple(settings.sources),
         exhaustive=frozenset(key for key, report in result.reports.items() if report.exhaustive),
+        sites_checked=bool(checked),
     )
-    places = merge(companies)
     places = gaps_module.apply(places, context)
     places = [place for place in places if _wanted(place, settings, context)]
     result.places = places
@@ -132,6 +147,39 @@ def run(
         f"Запросов к картам {result.requests}, времени {result.seconds:.0f} с."
     )
     return result
+
+
+def _check_sites(
+    places: list[Place],
+    settings: Settings,
+    fetcher: Fetcher,
+    say: Callable[[str], None],
+) -> int:
+    """Заходит на сайты фирм: добирает почты и выясняет, работает ли сайт вообще."""
+    with_site = [place for place in places if place.websites][: settings.site_limit]
+    if not with_site:
+        return 0
+    say(f"Захожу на сайты фирм ({len(with_site)}) — там обычно лежит почта")
+    found_emails = 0
+    dead = 0
+    for number, place in enumerate(with_site, 1):
+        report = check_site(place.websites[0], fetcher)
+        place.site = report
+        extra: list[Link] = []
+        known_emails = set(place.emails)
+        for value in report.emails:
+            if value not in known_emails:
+                extra.append(Link(EMAIL, value, value))
+                found_emails += 1
+        known_phones = set(place.phones)
+        extra.extend(Link(PHONE, value, value) for value in report.phones if value not in known_phones)
+        place.extra = tuple(extra)
+        if not report.alive:
+            dead += 1
+        if number % 25 == 0 or number == len(with_site):
+            say(f"Сайтов проверено {number} из {len(with_site)}")
+    say(f"На сайтах нашлось новых почт: {found_emails}; не открылось сайтов: {dead}")
+    return len(with_site)
 
 
 def _wanted(place: Place, settings: Settings, context: gaps_module.Context) -> bool:

@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from mapsparser.cities import City
+from mapsparser.http import Page
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -23,12 +24,27 @@ def fixture(name: str) -> str:
 class FakeFetcher:
     """Загрузчик, который вместо сети берёт сохранённые страницы."""
 
-    def __init__(self, pages: dict[str, str] | None = None, default: str = "") -> None:
+    def __init__(
+        self,
+        pages: dict[str, str] | None = None,
+        default: str = "",
+        sites: dict[str, str] | None = None,
+    ) -> None:
         self.pages = pages or {}
         self.default = default
+        self.sites = sites or {}  # для probe: страницы чужих сайтов
         self.asked: list[str] = []
+        self.probed: list[str] = []
         self.requests_made = 0
         self.from_cache = 0
+
+    def probe(self, url: str, *, timeout: float = 10.0) -> Page:
+        self.probed.append(url)
+        self.requests_made += 1
+        for marker, text in self.sites.items():
+            if marker in url:
+                return Page(text=text, status=200, url=url)
+        return Page(text="", status=404, url=url)
 
     def get(self, url: str, *, headers: dict[str, str] | None = None) -> str:
         self.asked.append(url)

@@ -62,6 +62,8 @@ def cmd_collect(args: argparse.Namespace) -> int:
         tiles=args.tiles,
         min_score=args.min_score,
         required_gaps=tuple(args.gap or ()),
+        check_sites=not args.no_sites,
+        site_limit=args.site_limit,
     )
     print(f"{APP_TITLE} by {BRAND} — ищу «{settings.query}» в городе {city.name}")
     try:
@@ -165,6 +167,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     collect.add_argument("-l", "--limit", type=int, default=300, help="сколько организаций брать с каждой карты")
     collect.add_argument("--no-deep", action="store_true", help="не открывать карточки 2ГИС (быстрее, но без почт)")
+    collect.add_argument(
+        "--no-sites", action="store_true", help="не заходить на сайты фирм (быстрее, но почт найдётся меньше)"
+    )
+    collect.add_argument("--site-limit", type=int, default=400, help="сколько сайтов проверять за сбор")
     collect.add_argument("--delay", type=float, default=1.5, help="пауза между запросами, секунды")
     collect.add_argument("--tiles", type=int, default=0, help="на сколько участков резать город в 2ГИС")
     collect.add_argument("--min-score", type=int, default=0, help="оставить фирмы с оценкой не ниже")

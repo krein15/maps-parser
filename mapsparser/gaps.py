@@ -35,6 +35,7 @@ class Context:
 
     sources: tuple[Source, ...] = ()
     exhaustive: frozenset[str] = field(default_factory=frozenset)
+    sites_checked: bool = False  # заходили ли на сайты фирм
 
     def saw(self, place: Place, kind: str) -> bool:
         """Видел ли фирму источник, который такой контакт вообще показывает."""
@@ -67,7 +68,27 @@ def _no_website(place: Place, context: Context) -> bool:
 
 
 def _no_email(place: Place, context: Context) -> bool:
-    return context.saw(place, EMAIL) and not place.emails
+    # Почту показывает только 2ГИС; но если программа ещё и зашла на сайт фирмы,
+    # вывод «почты нет» становится обоснованным и без него.
+    looked = context.saw(place, EMAIL) or (context.sites_checked and place.site is not None)
+    return looked and not place.emails
+
+
+def _site_dead(place: Place, _context: Context) -> bool:
+    """Сайт у фирмы есть, но он не открывается или это заглушка хостера."""
+    return place.site is not None and not place.site.alive
+
+
+def _site_no_https(place: Place, _context: Context) -> bool:
+    return place.site is not None and place.site.alive and not place.site.https
+
+
+def _site_not_mobile(place: Place, _context: Context) -> bool:
+    return place.site is not None and place.site.alive and not place.site.mobile
+
+
+def _site_no_form(place: Place, _context: Context) -> bool:
+    return place.site is not None and place.site.alive and not place.site.form
 
 
 def _no_phone(place: Place, context: Context) -> bool:
@@ -124,6 +145,12 @@ def _no_schedule(place: Place, _context: Context) -> bool:
 
 GAPS: tuple[Gap, ...] = (
     Gap("website", "нет сайта", 30, _no_website, "сделать сайт или хотя бы страницу-визитку"),
+    # Неработающий сайт — повод к разговору сильнее, чем его отсутствие: фирма уже платит
+    # за хостинг и домен, просто не знает, что посетители туда не попадают.
+    Gap("site_dead", "сайт не открывается", 28, _site_dead, "за домен платят, а сайта нет — поднять"),
+    Gap("site_no_https", "сайт без https", 10, _site_no_https, "браузеры метят такой сайт небезопасным"),
+    Gap("site_not_mobile", "сайт не для телефона", 14, _site_not_mobile, "с телефона заходит большинство"),
+    Gap("site_no_form", "на сайте нет формы заявки", 8, _site_no_form, "заявку оставить негде"),
     Gap("email", "нет почты", 10, _no_email, "писать некуда — только звонок или мессенджер"),
     Gap("phone", "нет телефона", 6, _no_phone, "фирму нельзя набрать: заявки уходят к соседям"),
     Gap("socials", "нет соцсетей", 10, _no_socials, "нет площадки, где показывают работы"),

@@ -18,7 +18,14 @@ def both_maps(monkeypatch, twogis_pages, yandex_pages) -> FakeFetcher:
 
 
 def settings(tyumen, **fields: object) -> Settings:
-    base = {"query": "кофейня", "city": tyumen, "sources": [TwoGis, Yandex], "limit": 50, "use_cache": False}
+    base = {
+        "query": "кофейня",
+        "city": tyumen,
+        "sources": [TwoGis, Yandex],
+        "limit": 50,
+        "use_cache": False,
+        "check_sites": False,  # проверка сайтов включается отдельным тестом
+    }
     return Settings(**{**base, **fields})
 
 
@@ -81,3 +88,38 @@ def test_log_tells_what_is_happening(tyumen, both_maps) -> None:
     assert any("2ГИС" in line for line in lines)
     assert any("Яндекс" in line for line in lines)
     assert any("Готово" in line for line in lines)
+
+
+SITE_PAGE = """
+<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width">
+<title>Ола Ола</title></head><body>
+<a href="mailto:zakaz@ola-ola.ru">написать</a>
+<form><input type="email"></form>
+</body></html>
+"""
+
+
+def test_site_check_adds_emails_the_maps_did_not_have(tyumen, monkeypatch, twogis_pages, yandex_pages) -> None:
+    """Главное ради чего ходим на сайт: почта, которой нет ни на одной карте."""
+    fetcher = FakeFetcher({**twogis_pages, **yandex_pages}, sites={"ola-ola.ru": SITE_PAGE})
+    monkeypatch.setattr("mapsparser.pipeline.Fetcher", lambda **_kwargs: fetcher)
+    result = run(settings(tyumen, check_sites=True))
+    ola = next(place for place in result.places if place.name == "Ола Ола")
+    assert "zakaz@ola-ola.ru" in ola.emails
+    assert ola.from_site("email") == ("zakaz@ola-ola.ru",)
+    assert ola.site is not None and ola.site.alive
+    assert result.sites_checked == 1  # сайт был только у одной фирмы
+
+
+def test_site_that_does_not_open_becomes_a_gap(tyumen, monkeypatch, twogis_pages, yandex_pages) -> None:
+    fetcher = FakeFetcher({**twogis_pages, **yandex_pages}, sites={})  # ни один сайт не отвечает
+    monkeypatch.setattr("mapsparser.pipeline.Fetcher", lambda **_kwargs: fetcher)
+    result = run(settings(tyumen, check_sites=True))
+    ola = next(place for place in result.places if place.name == "Ола Ола")
+    assert "сайт не открывается" in ola.gaps
+    assert "нет сайта" not in ola.gaps  # сайт-то есть, он просто мёртвый
+
+
+def test_sites_are_not_touched_when_the_check_is_off(tyumen, both_maps) -> None:
+    run(settings(tyumen, check_sites=False))
+    assert not both_maps.probed
