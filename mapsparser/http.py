@@ -166,8 +166,18 @@ class Fetcher:
 
         Ошибку сервера здесь не считаем бедой — наоборот, неработающий сайт фирмы
         это и есть результат проверки, поэтому код ответа возвращается как есть.
+        Ответ кладётся в кэш вместе с кодом: повторный сбор по той же нише не должен
+        заново обходить сотню чужих сайтов и ждать на каждом мёртвом по десять секунд.
         """
         self.check_stop()
+        key = f"probe:{url}"
+        if self.cache:
+            cached = self.cache.get(key)
+            if cached is not None:
+                self.from_cache += 1
+                head, _, text = cached.partition("\n")
+                status, _, final = head.partition(" ")
+                return Page(text=text, status=int(status or 0), url=final or url)
         self._wait_turn()
         self._last_request_at = time.monotonic()
         try:
@@ -175,7 +185,10 @@ class Fetcher:
         except requests.RequestException as exc:
             raise FetchError(f"{type(exc).__name__}") from exc
         self.requests_made += 1
-        return Page(text=response.text, status=response.status_code, url=response.url)
+        page = Page(text=response.text, status=response.status_code, url=response.url)
+        if self.cache:
+            self.cache.put(key, f"{page.status} {page.url}\n{page.text}")
+        return page
 
     def _retry_after(self, response: requests.Response, attempt: int) -> float:
         raw = response.headers.get("Retry-After", "")

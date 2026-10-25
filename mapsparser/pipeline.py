@@ -25,6 +25,7 @@ from .merge import merge
 from .models import EMAIL, PHONE, Company, Link, Place
 from .settings import default_cache_dir
 from .sources import Report, SearchRequest, Source, all_sources
+from .website import SITE_PAUSE
 from .website import check as check_site
 
 
@@ -160,7 +161,7 @@ def run(
     places = merge(companies)
     checked = 0
     if settings.check_sites and not result.stopped:
-        with Fetcher(delay=settings.delay / 3, retries=1, cache=cache, log=say, stop=stop) as fetcher:
+        with Fetcher(delay=SITE_PAUSE, retries=1, cache=cache, log=say, stop=stop) as fetcher:
             try:
                 checked = _check_sites(places, settings, fetcher, say)
             except Stopped:

@@ -63,10 +63,17 @@ def test_remembered_city_joins_the_catalogue(tmp_path: Path, monkeypatch) -> Non
 
 
 class FakeResponse:
-    def __init__(self, status: int, text: str = "", headers: dict[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        status: int,
+        text: str = "",
+        headers: dict[str, str] | None = None,
+        url: str = "https://ola-ola.ru/",
+    ) -> None:
         self.status_code = status
         self.text = text
         self.headers = headers or {}
+        self.url = url  # адрес после переадресаций, как у настоящего ответа
 
 
 class FakeSession:
@@ -75,7 +82,7 @@ class FakeSession:
         self.calls = 0
         self.headers: dict[str, str] = {}
 
-    def get(self, url: str, timeout: float = 0, headers: object = None) -> FakeResponse:
+    def get(self, url: str, timeout: float = 0, headers: object = None, **_extra: object) -> FakeResponse:
         answer = self.answers[min(self.calls, len(self.answers) - 1)]
         self.calls += 1
         if isinstance(answer, Exception):
@@ -232,3 +239,19 @@ def test_satellite_city_is_marked_as_such() -> None:
         pytest.skip("Химок нет в справочнике этой сборки")
     assert khimki.satellite is True
     assert khimki.project == "Москва"
+
+
+def test_site_answer_is_cached_with_its_status(tmp_path: Path) -> None:
+    """Повторный сбор не должен заново обходить сотню чужих сайтов."""
+    from mapsparser.http import Page
+
+    cache = Cache(tmp_path, ttl_hours=1)
+    fetcher = Fetcher(delay=0, retries=1, cache=cache)
+    fetcher.session = FakeSession([FakeResponse(404, "нет такой страницы")])
+    first = fetcher.probe("https://ola-ola.ru")
+    second = fetcher.probe("https://ola-ola.ru")
+    assert isinstance(first, Page)
+    assert first.status == second.status == 404
+    assert first.text == second.text
+    assert fetcher.session.calls == 1  # второй раз взяли из кэша
+    assert fetcher.from_cache == 1

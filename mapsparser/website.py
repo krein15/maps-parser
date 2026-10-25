@@ -25,7 +25,10 @@ from .normalize import email as clean_email
 from .normalize import phone as clean_phone
 
 MAX_PAGES_PER_SITE = 2
-CHECK_TIMEOUT = 10.0
+# Мёртвый сайт узнаётся по тому, что он не ответил, и ждать его дольше смысла нет:
+# на сотне фирм каждая лишняя секунда ожидания — это лишние полторы минуты сбора.
+CHECK_TIMEOUT = 8.0
+SITE_PAUSE = 0.2  # вежливость считается на хост, а сайты у всех фирм разные
 
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _MAILTO_RE = re.compile(r'mailto:([^"\'>\s?]+)', re.I)
