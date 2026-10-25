@@ -1,6 +1,6 @@
 [project]
 name = "mapsparser"
-version = "0.1.0"
+version = "0.2.0"
 description = "Organisations from 2GIS and Yandex Maps into Excel: contacts and what each firm is missing"
 requires-python = ">=3.12"
 dependencies = ["requests", "openpyxl", "customtkinter", "pillow"]
