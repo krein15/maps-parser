@@ -17,7 +17,10 @@ mapsparser = ["data/*.json", "templates/*.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+# Канареечные тесты ходят в сеть: в обычный прогон они не попадают, их гоняет
+# отдельное задание раз в неделю (pytest -m live).
+addopts = "-q -m 'not live'"
+markers = ["live: ходит в интернет и проверяет, что формат карт не изменился"]
 # Без этого пакет виден только при запуске «python -m pytest»: сама команда pytest
 # корень проекта в sys.path не кладёт, и на сервере сборки тесты не находят mapsparser.
 pythonpath = ["."]

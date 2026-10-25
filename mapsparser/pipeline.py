@@ -15,6 +15,7 @@ from . import gaps as gaps_module
 from . import niches as niches_module
 from .cache import Cache
 from .cities import City
+from .display import plural
 from .history import Changes, History, compare, run_key
 from .history import summary as history_summary
 from .http import Fetcher, Stopped
@@ -105,7 +106,8 @@ def run(
 
     queries = settings.all_queries()
     if len(queries) > 1:
-        say(f"Ниша «{settings.query}» — это {len(queries)} запроса: {', '.join(queries)}")
+        asked = plural(len(queries), "запрос", "запроса", "запросов")
+        say(f"Ниша «{settings.query}» — это {asked}: {', '.join(queries)}")
     per_query = niches_module.share(settings.limit, len(queries))
 
     with Fetcher(delay=settings.delay, cache=cache, log=say, stop=stop) as fetcher:

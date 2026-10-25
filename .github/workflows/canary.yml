@@ -1,0 +1,29 @@
+name: Формат карт
+
+# Остальные тесты идут по сохранённым страницам и не заметят, если 2ГИС или Яндекс
+# переделают свои страницы. Эта проверка ходит в сеть и падает ровно в этом случае.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"  # по понедельникам утром
+  workflow_dispatch:
+
+jobs:
+  canary:
+    name: карты отдают данные в том же виде
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Установить зависимости
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Проверить формат источников
+        run: pytest -m live -q

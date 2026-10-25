@@ -24,6 +24,7 @@ from typing import Any
 from urllib.parse import quote
 
 from ..cities import City
+from ..display import plural
 from ..http import FetchError
 from ..models import (
     EMAIL,
@@ -307,7 +308,8 @@ class TwoGisCollector(Collector):
             self.log("2ГИС: границы города не нашлись — соберу только первую сотню мест")
             return tiles
         grid = tiles_for(bounds, min(wanted, 100))
-        self.log(f"2ГИС: выдача отдаёт 60 мест на запрос, поэтому режу город на {len(grid)} участков")
+        spots = plural(len(grid), "участок", "участка", "участков")
+        self.log(f"2ГИС: выдача отдаёт 60 мест на запрос, поэтому режу город на {spots}")
         return tiles + list(grid)
 
     def _collect_tile(
