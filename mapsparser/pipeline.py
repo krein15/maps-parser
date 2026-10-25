@@ -16,6 +16,8 @@ from . import niches as niches_module
 from .cache import Cache
 from .cities import City
 from .display import plural
+from .egrul import SEARCH_PAUSE as EGRUL_PAUSE
+from .egrul import lookup
 from .history import Changes, History, compare, run_key
 from .history import summary as history_summary
 from .http import Fetcher, Stopped
@@ -48,6 +50,8 @@ class Settings:
     history_dir: Path | None = None
     queries: tuple[str, ...] = ()  # если пусто — берутся из ниши или из самого запроса
     site_limit: int = 400  # сколько сайтов проверять за один сбор
+    find_inn: bool = False  # искать ИНН в ЕГРЮЛ: два обращения к реестру на фирму
+    inn_limit: int = 100
 
     def all_queries(self) -> tuple[str, ...]:
         """Запросы сбора: заданные прямо, иначе набор ниши, иначе само слово."""
@@ -67,6 +71,7 @@ class Result:
     finished_at: datetime | None = None
     stopped: bool = False
     sites_checked: int = 0
+    inn_found: int = 0
     changes: Changes = field(default_factory=Changes)
     context: gaps_module.Context = field(default_factory=gaps_module.Context)
 
@@ -163,6 +168,14 @@ def run(
                 say("Остановлено на проверке сайтов. Сохраняю собранное.")
         result.sites_checked = checked
 
+    if settings.find_inn and not result.stopped:
+        with Fetcher(delay=EGRUL_PAUSE, retries=1, cache=cache, log=say, stop=stop) as fetcher:
+            try:
+                result.inn_found = _find_inn(places, settings, fetcher, say)
+            except Stopped:
+                result.stopped = True
+                say("Остановлено на поиске ИНН. Сохраняю собранное.")
+
     context = gaps_module.Context(
         sources=tuple(settings.sources),
         exhaustive=frozenset(key for key, report in result.reports.items() if report.exhaustive),
@@ -242,6 +255,26 @@ def _check_sites(
             say(f"Сайтов проверено {number} из {len(with_site)}")
     say(f"На сайтах нашлось новых почт: {found_emails}; не открылось сайтов: {dead}")
     return len(with_site)
+
+
+def _find_inn(
+    places: list[Place],
+    settings: Settings,
+    fetcher: Fetcher,
+    say: Callable[[str], None],
+) -> int:
+    """Ищет фирмы в ЕГРЮЛ. Молчит там, где не уверен: чужой ИНН хуже пустой клетки."""
+    wanted = places[: settings.inn_limit]
+    say(f"Ищу ИНН в ЕГРЮЛ ({len(wanted)} фирм) — реестр отвечает небыстро")
+    found = 0
+    for number, place in enumerate(wanted, 1):
+        entity = lookup(place.name, settings.city.name, settings.city.region, fetcher)
+        if entity:
+            place.entity = entity
+            found += 1
+        if number % 20 == 0 or number == len(wanted):
+            say(f"ИНН: проверено {number} из {len(wanted)}, нашлось {found}")
+    return found
 
 
 def _wanted(place: Place, settings: Settings, context: gaps_module.Context) -> bool:

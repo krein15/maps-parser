@@ -18,6 +18,10 @@ from pathlib import Path
 from . import __version__, scheduler
 from .cache import Cache
 from .cities import City, all_cities, find, find_or_guess, suggest
+from .crm import FORMATS as CRM_FORMATS
+from .crm import by_key as crm_by_key
+from .crm import write as write_crm
+from .crm import write_all as write_crm_all
 from .excel import write_default
 from .gaps import GAPS
 from .history import Changes, History, run_key
@@ -76,6 +80,7 @@ def cmd_collect(args: argparse.Namespace) -> int:
         required_gaps=tuple(args.gap or ()),
         check_sites=not args.no_sites,
         skip_chains=args.no_chains,
+        find_inn=args.inn,
         remember=not args.forget,
         site_limit=args.site_limit,
     )
@@ -104,6 +109,15 @@ def cmd_collect(args: argparse.Namespace) -> int:
 
         csv_path = write_csv(result, report.with_suffix(".csv"))
         print(f"CSV:    {csv_path}")
+    if args.crm:
+        made = (
+            write_crm_all(result, report.parent, report.stem)
+            if args.crm == "all"
+            else [write_crm(result, report.parent / f"{report.stem} — {crm_by_key(args.crm).title}.csv",
+                            crm_by_key(args.crm))]
+        )
+        for path in made:
+            print(f"CRM:    {path}")
     if args.open:
         _open_file(report)
     return 0
@@ -249,6 +263,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
         sources=tuple(args.source or ()),
         check_sites=not args.no_sites,
         skip_chains=args.no_chains,
+        find_inn=args.inn,
     )
     add_watch(watch)
     print(f"Под присмотром: {watch.title}")
@@ -364,9 +379,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--gap", action="append", choices=[gap.code for gap in GAPS], help="оставить только с этим пробелом"
     )
     collect.add_argument("--no-chains", action="store_true", help="без сетевых точек: решает не филиал, а центр")
+    collect.add_argument("--inn", action="store_true", help="искать ИНН и дату регистрации в ЕГРЮЛ (медленно)")
     collect.add_argument("--no-cache", action="store_true", help="не использовать сохранённые страницы")
     collect.add_argument("--forget", action="store_true", help="не помнить этот сбор (без разбора изменений)")
     collect.add_argument("--csv", action="store_true", help="сохранить ещё и CSV")
+    collect.add_argument(
+        "--crm", choices=[item.key for item in CRM_FORMATS] + ["all"], help="файл под импорт в CRM"
+    )
     collect.add_argument("--out", help="куда положить отчёт")
     collect.add_argument("--show", type=int, default=20, help="сколько строк показать в консоли")
     collect.add_argument("--open", action="store_true", help="открыть отчёт после сохранения")

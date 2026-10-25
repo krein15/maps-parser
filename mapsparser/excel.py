@@ -72,6 +72,16 @@ def _chain(place: Place) -> str:
     return f"{place.branches} точек" if place.branches > 1 else ""
 
 
+def _registered(place: Place) -> str:
+    """Молодая фирма — хороший повод зайти: она ещё ничего не заказала."""
+    entity = place.entity
+    if not entity or not entity.registered:
+        return ""
+    age = entity.age_days()
+    young = " (новая)" if age is not None and age <= 365 else ""
+    return f"{entity.registered:%d.%m.%Y}{young}"
+
+
 def _socials(place: Place) -> str:
     return "\n".join(f"{LINK_TITLES.get(link.kind, link.kind)}: {link.value}" for link in place.socials)
 
@@ -100,6 +110,8 @@ def columns(result: Result) -> list[Column]:
         Column("Оценок", 9, lambda p: p.reviews or None),
         Column("Режим работы", 28, lambda p: p.schedule, wrap=True),
         Column("Сеть", 20, _chain, wrap=True),
+        Column("ИНН", 14, lambda p: p.entity.inn if p.entity else "", mono=True),
+        Column("В реестре с", 13, _registered),
         Column("Источники", 18, lambda p: _sources(p, result)),
     ]
     for source in result.settings.sources:

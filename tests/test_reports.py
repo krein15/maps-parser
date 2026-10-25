@@ -120,3 +120,50 @@ def test_csv_opens_in_russian_excel(report, tmp_path: Path) -> None:
     assert lines[0].split(";")[0] == "Фирма"
     assert len(lines) == len(report.places) + 1
     assert "ola@mail.ru" in lines[1] or "ola@mail.ru" in lines[2]
+
+
+def test_crm_file_has_the_columns_that_system_expects(report, tmp_path: Path) -> None:
+    from mapsparser import crm
+
+    path = crm.write(report, tmp_path / "amo.csv", crm.AMO)
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
+    assert lines[0].split(";")[0] == "Название компании"
+    assert path.read_bytes().startswith(b"\xef\xbb\xbf")
+    bitrix = crm.write(report, tmp_path / "bitrix.csv", crm.BITRIX)
+    assert bitrix.read_text(encoding="utf-8-sig").splitlines()[0].split(";")[0] == "Название"
+
+
+def test_crm_row_keeps_one_value_per_cell(report) -> None:
+    from mapsparser import crm
+
+    place = next(p for p in report.places if p.phones)
+    row = crm.row_for(place)
+    assert ";" not in row[1]  # CRM берёт из клетки один телефон
+    assert row[0] == place.name
+    assert "Чего нет" in row[5] or not place.gaps
+
+
+def test_crm_note_tells_what_to_offer(report) -> None:
+    from mapsparser import crm
+
+    poor = next(p for p in report.places if p.gaps)
+    note = crm.note_for(poor)
+    assert "Чего нет" in note
+    assert "Карточки:" in note
+
+
+def test_crm_tags_mark_the_hot_ones(report) -> None:
+    from mapsparser import crm
+
+    for place in report.places:
+        tags = crm.tags_for(place)
+        if not place.websites:
+            assert "без сайта" in tags
+        assert place.city in tags
+
+
+def test_unknown_crm_is_refused() -> None:
+    from mapsparser import crm
+
+    with pytest.raises(KeyError, match="неизвестная CRM"):
+        crm.by_key("salesforce")

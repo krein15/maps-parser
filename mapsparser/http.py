@@ -146,6 +146,21 @@ class Fetcher:
 
         raise FetchError(f"не удалось получить {url}: {last_error}")
 
+    def post(self, url: str, data: dict[str, str], *, timeout: float = 30.0) -> str:
+        """Отправляет форму. Нужно реестру ЕГРЮЛ: он выдаёт талон на поиск."""
+        self.check_stop()
+        self._wait_turn()
+        self._last_request_at = time.monotonic()
+        headers = {"X-Requested-With": "XMLHttpRequest", "Referer": url}
+        try:
+            response = self.session.post(url, data=data, timeout=timeout, headers=headers)
+        except requests.RequestException as exc:
+            raise FetchError(f"{type(exc).__name__}") from exc
+        self.requests_made += 1
+        if response.status_code != 200:
+            raise FetchError(f"ответ {response.status_code}: {url}")
+        return response.text
+
     def probe(self, url: str, *, timeout: float = 10.0) -> Page:
         """Одна попытка без повторов: нужна для чужих сайтов.
 

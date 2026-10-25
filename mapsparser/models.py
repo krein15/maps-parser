@@ -216,6 +216,7 @@ class Place:
     by_source: dict[str, Company] = field(default_factory=dict)
     extra: tuple[Link, ...] = ()  # контакты, найденные не на картах, а на сайте фирмы
     site: SiteReport | None = None
+    entity: object | None = None  # запись ЕГРЮЛ, если её удалось сопоставить
     gaps: tuple[str, ...] = ()
     score: int = 0
 

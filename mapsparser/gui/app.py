@@ -28,6 +28,7 @@ import customtkinter as ctk
 from .. import __version__, scheduler
 from ..cache import Cache
 from ..cities import City, find, suggest
+from ..crm import write_all as write_crm_all
 from ..csvout import write as write_csv
 from ..excel import write_default
 from ..http import Stopped
@@ -434,9 +435,12 @@ class App(ctk.CTk):
         self.stop_button = neutral_button(buttons, "Остановить", self._stop, width=130)
         self.stop_button.pack(side="left")
         self.stop_button.configure(state="disabled")
-        self.csv_button = neutral_button(buttons, "Ещё и CSV", self._save_csv, width=120)
+        self.csv_button = neutral_button(buttons, "Ещё и CSV", self._save_csv, width=110)
         self.csv_button.pack(side="right")
         self.csv_button.configure(state="disabled")
+        self.crm_button = neutral_button(buttons, "Для CRM", self._save_crm, width=110)
+        self.crm_button.pack(side="right", padx=8)
+        self.crm_button.configure(state="disabled")
 
     # ------------------------------------------------------------------ сбор
 
@@ -480,6 +484,7 @@ class App(ctk.CTk):
         self.stop_button.configure(state="normal")
         self.open_button.configure(state="disabled")
         self.csv_button.configure(state="disabled")
+        self.crm_button.configure(state="disabled")
         self.worker = threading.Thread(target=self._work, args=(settings,), daemon=True)
         self.worker.start()
 
@@ -537,6 +542,7 @@ class App(ctk.CTk):
             self._say("Ничего не нашлось. Попробуйте другое слово или снимите фильтр.", "warning")
             return
         self.csv_button.configure(state="normal")
+        self.crm_button.configure(state="normal")
         if report:
             self.open_button.configure(state="normal")
             self._say(f"Отчёт: {report}")
@@ -815,6 +821,13 @@ class App(ctk.CTk):
             return
         path = write_csv(self.result, self.last_report.with_suffix(".csv"))
         self._say(f"CSV: {path}")
+
+    def _save_crm(self) -> None:
+        """Файлы под импорт в amoCRM и Битрикс24 — рядом с отчётом."""
+        if not (self.result and self.last_report):
+            return
+        for path in write_crm_all(self.result, self.last_report.parent, self.last_report.stem):
+            self._say(f"Для CRM: {path.name}")
 
     def _open_report(self) -> None:
         if self.last_report:
