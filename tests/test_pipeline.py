@@ -18,6 +18,7 @@ def both_maps(monkeypatch, twogis_pages, yandex_pages) -> FakeFetcher:
 
 
 def settings(tyumen, **fields: object) -> Settings:
+    # История по умолчанию пишется рядом с настройками пользователя; в тестах — никуда.
     base = {
         "query": "кофейня",
         "city": tyumen,
@@ -25,6 +26,7 @@ def settings(tyumen, **fields: object) -> Settings:
         "limit": 50,
         "use_cache": False,
         "check_sites": False,  # проверка сайтов включается отдельным тестом
+        "remember": False,
     }
     return Settings(**{**base, **fields})
 

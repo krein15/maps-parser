@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import pytest
+from conftest import FakeFetcher
 
 from mapsparser.__main__ import main
 from mapsparser.niches import MIN_PER_QUERY, find, load_niches, names, queries_for, share
 from mapsparser.pipeline import Settings
 from mapsparser.sources import TwoGis, Yandex
-
-from conftest import FakeFetcher
 
 
 def test_niches_are_shipped_with_the_program() -> None:
@@ -72,6 +71,7 @@ def test_pipeline_asks_every_query_of_the_niche(tyumen, monkeypatch, twogis_page
         limit=50,
         use_cache=False,
         check_sites=False,
+        remember=False,
     )
     run(settings)
     assert any("%D0%BF%D0%B5%D0%BA%D0%B0%D1%80%D0%BD%D1%8F" in url for url in fetcher.asked)
@@ -84,7 +84,14 @@ def test_one_firm_found_twice_is_counted_once(tyumen, monkeypatch, twogis_pages,
 
     fetcher = FakeFetcher({**twogis_pages, **yandex_pages})
     monkeypatch.setattr("mapsparser.pipeline.Fetcher", lambda **_kwargs: fetcher)
-    base = {"city": tyumen, "sources": [TwoGis, Yandex], "limit": 50, "use_cache": False, "check_sites": False}
+    base = {
+        "city": tyumen,
+        "sources": [TwoGis, Yandex],
+        "limit": 50,
+        "use_cache": False,
+        "check_sites": False,
+        "remember": False,
+    }
     one = run(Settings(query="кофейня", **base))
     two = run(Settings(query="кофейня", queries=("кофейня", "пекарня"), **base))
     assert len(two.places) == len(one.places)

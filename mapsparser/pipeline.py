@@ -15,6 +15,8 @@ from . import gaps as gaps_module
 from . import niches as niches_module
 from .cache import Cache
 from .cities import City
+from .history import Changes, History, compare, run_key
+from .history import summary as history_summary
 from .http import Fetcher, Stopped
 from .merge import merge
 from .models import EMAIL, PHONE, Company, Link, Place
@@ -40,6 +42,8 @@ class Settings:
     min_score: int = 0
     required_gaps: tuple[str, ...] = ()  # коды пробелов, без которых фирма не нужна
     check_sites: bool = True  # заходить на сайты фирм за почтами и состоянием сайта
+    remember: bool = True  # помнить сбор, чтобы в следующий раз показать изменения
+    history_dir: Path | None = None
     queries: tuple[str, ...] = ()  # если пусто — берутся из ниши или из самого запроса
     site_limit: int = 400  # сколько сайтов проверять за один сбор
 
@@ -61,6 +65,7 @@ class Result:
     finished_at: datetime | None = None
     stopped: bool = False
     sites_checked: int = 0
+    changes: Changes = field(default_factory=Changes)
     context: gaps_module.Context = field(default_factory=gaps_module.Context)
 
     @property
@@ -160,6 +165,20 @@ def run(
     places = [place for place in places if _wanted(place, settings, context)]
     result.places = places
     result.context = context
+
+    if settings.remember and not result.stopped:
+        # Прерванный сбор в историю не кладём: в нём «пропавшие» фирмы — это те,
+        # до которых не дошли руки, и следующий разбор изменений был бы враньём.
+        history = History(
+            run_key(settings.city.alias or settings.city.name, settings.query),
+            settings.history_dir,
+        )
+        previous, previous_at = history.load()
+        result.changes = compare(places, previous, previous_at)
+        history.save(places, previous=previous)
+        if not result.changes.first_run:
+            say(history_summary(result.changes))
+
     result.finished_at = datetime.now().astimezone()
     if on_place:
         for place in places:

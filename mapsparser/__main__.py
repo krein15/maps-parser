@@ -19,6 +19,8 @@ from .cache import Cache
 from .cities import City, all_cities, find, suggest
 from .excel import write_default
 from .gaps import GAPS
+from .history import Changes, History, run_key
+from .history import summary as history_summary
 from .http import Stopped
 from .models import Place
 from .niches import find as find_niche
@@ -67,6 +69,7 @@ def cmd_collect(args: argparse.Namespace) -> int:
         min_score=args.min_score,
         required_gaps=tuple(args.gap or ()),
         check_sites=not args.no_sites,
+        remember=not args.forget,
         site_limit=args.site_limit,
     )
     print(f"{APP_TITLE} by {BRAND} — ищу «{settings.query}» в городе {city.name}")
@@ -83,6 +86,8 @@ def cmd_collect(args: argparse.Namespace) -> int:
         print("Ничего не нашлось. Попробуйте другое слово или снимите фильтры.")
         return 1
 
+    if result.changes and not result.changes.first_run:
+        _print_changes(result.changes)
     _print_table(result.places[: args.show])
     directory = Path(args.out) if args.out else default_output_dir()
     report = write_default(result, directory)
@@ -95,6 +100,15 @@ def cmd_collect(args: argparse.Namespace) -> int:
     if args.open:
         _open_file(report)
     return 0
+
+
+def _print_changes(changes: Changes) -> None:
+    """Новые фирмы — вперёд: в нише это самый горячий лид."""
+    print()
+    print(history_summary(changes))
+    order = {"new": 0, "site_died": 1, "lost_site": 2, "gone": 3}
+    for change in sorted(changes.items, key=lambda item: order.get(item.kind, 9))[:20]:
+        print(f"  {change.text}")
 
 
 def _print_table(places: list[Place]) -> None:
@@ -182,6 +196,28 @@ def cmd_cache(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_history(args: argparse.Namespace) -> int:
+    folder = History("x").directory
+    if not args.city or not args.query:
+        files = sorted(folder.glob("*.json")) if folder.exists() else []
+        for path in files:
+            print(f"  {path.stem}")
+        print()
+        print(f"Сборов в памяти: {len(files)}. Папка: {folder}")
+        return 0
+    city = city_or_exit(args.city)
+    history = History(run_key(city.alias or city.name, args.query))
+    if args.forget:
+        print("Забыто." if history.forget() else "Такого сбора в памяти нет.")
+        return 0
+    places, when = history.load()
+    if not places:
+        print("Такого сбора в памяти нет.")
+        return 1
+    print(f"Сбор от {when}: фирм {len(places)}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="mapsparser",
@@ -210,6 +246,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--gap", action="append", choices=[gap.code for gap in GAPS], help="оставить только с этим пробелом"
     )
     collect.add_argument("--no-cache", action="store_true", help="не использовать сохранённые страницы")
+    collect.add_argument("--forget", action="store_true", help="не помнить этот сбор (без разбора изменений)")
     collect.add_argument("--csv", action="store_true", help="сохранить ещё и CSV")
     collect.add_argument("--out", help="куда положить отчёт")
     collect.add_argument("--show", type=int, default=20, help="сколько строк показать в консоли")
@@ -227,6 +264,12 @@ def build_parser() -> argparse.ArgumentParser:
     cache = commands.add_parser("cache", help="сохранённые страницы")
     cache.add_argument("--clear", action="store_true", help="очистить")
     cache.set_defaults(func=cmd_cache)
+
+    history = commands.add_parser("history", help="память о прошлых сборах")
+    history.add_argument("-c", "--city", help="город сбора")
+    history.add_argument("-q", "--query", help="ниша или слово")
+    history.add_argument("--forget", action="store_true", help="забыть этот сбор")
+    history.set_defaults(func=cmd_history)
     return parser
 
 

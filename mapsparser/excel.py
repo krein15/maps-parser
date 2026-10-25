@@ -109,6 +109,8 @@ def write(result: Result, path: Path) -> Path:
     firms.title = "Фирмы"
     _fill_firms(firms, result)
     _fill_summary(workbook.create_sheet("Сводка"), result)
+    if result.changes and not result.changes.first_run:
+        _fill_changes(workbook.create_sheet("Изменения"), result)
     path.parent.mkdir(parents=True, exist_ok=True)
     workbook.save(path)
     return path
@@ -153,6 +155,34 @@ def _fill_firms(sheet: Worksheet, result: Result) -> None:
             end_type="num", end_value=80, end_color=ACCENT,
         ),
     )
+
+
+def _fill_changes(sheet: Worksheet, result: Result) -> None:
+    """Что поменялось в нише с прошлого сбора — ради этого и ведётся история."""
+    headers = ("Что случилось", "Фирма", "Адрес", "Было", "Стало")
+    for index, title in enumerate(headers, 1):
+        cell = sheet.cell(row=1, column=index, value=title)
+        cell.font = HEADER_FONT
+        cell.fill = HEADER_FILL
+        cell.alignment = Alignment(vertical="center", wrap_text=True)
+    for width, letter in zip((28, 34, 34, 26, 26), "ABCDE", strict=True):
+        sheet.column_dimensions[letter].width = width
+    sheet.row_dimensions[1].height = 26
+
+    # Сначала новые фирмы: в нише это самый горячий лид.
+    order = {"new": 0, "site_died": 1, "lost_site": 2, "lost_phone": 3, "rating_down": 4, "gone": 5}
+    items = sorted(result.changes.items, key=lambda change: order.get(change.kind, 9))
+    for row, change in enumerate(items, start=2):
+        values = (change.title, change.name, change.address, change.was, change.now)
+        for index, value in enumerate(values, 1):
+            cell = sheet.cell(row=row, column=index, value=value or None)
+            cell.font = TEXT_FONT
+            cell.alignment = Alignment(vertical="top", wrap_text=index in (1, 2, 3))
+            cell.border = CELL_BORDER
+        if change.kind == "new":
+            sheet.cell(row=row, column=1).font = Font(name="Calibri", size=11, bold=True, color=ACCENT_DARK)
+    sheet.freeze_panes = "A2"
+    sheet.auto_filter.ref = f"A1:E{max(2, len(items) + 1)}"
 
 
 def _fill_summary(sheet: Worksheet, result: Result) -> None:
