@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from mapsparser.merge import distance_meters, merge, same_place
-from mapsparser.models import PHONE, WEBSITE, Company, Link
+from mapsparser.models import PHONE, WEBSITE, Company, Link, is_mobile
 
 
 def company(source: str, name: str, address: str, lat: float | None = 57.15, lon: float | None = 65.55,
@@ -86,3 +86,43 @@ def test_rating_is_averaged_and_reviews_are_added() -> None:
 
 def test_distance_is_none_without_coordinates() -> None:
     assert distance_meters(company("2gis", "А", "Б", lat=None, lon=None), company("yandex", "А", "Б")) is None
+
+
+def test_a_chain_point_is_marked_as_such() -> None:
+    """Звонить в филиал сети бессмысленно: решение принимает центр."""
+    single = company("2gis", "Ола Ола", "Профсоюзная улица, 56")
+    from mapsparser.merge import place_from
+
+    assert place_from([single]).is_chain is False
+
+    branch = Company(source="yandex", source_id="1", name="Кофе Брют", address="улица Ленина, 57",
+                     chain="Кофе Брют")
+    place = place_from([branch])
+    assert place.is_chain is True
+    assert place.chain == "Кофе Брют"
+
+
+def test_many_branches_count_as_a_chain_even_without_a_name() -> None:
+    from mapsparser.merge import place_from
+
+    many = Company(source="2gis", source_id="1", name="Ола Ола", address="Профсоюзная улица, 56", branch_count=7)
+    place = place_from([many])
+    assert place.branches == 7
+    assert place.is_chain is True
+
+
+def test_mobile_numbers_are_told_apart() -> None:
+    """По мобильному пишут в мессенджер, по городскому звонят в приёмную."""
+    both = company("2gis", "Ола Ола", "Профсоюзная улица, 56",
+                   links=(Link(PHONE, "+73452666707"), Link(PHONE, "+79224720164")))
+    from mapsparser.merge import place_from
+
+    place = place_from([both])
+    assert place.phones == ("+73452666707", "+79224720164")
+    assert place.mobile_phones == ("+79224720164",)
+
+
+def test_is_mobile_knows_russian_numbers() -> None:
+    assert is_mobile("+79224720164") is True
+    assert is_mobile("+73452666707") is False
+    assert is_mobile("") is False

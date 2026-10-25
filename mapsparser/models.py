@@ -71,6 +71,11 @@ SOCIAL_KINDS: tuple[str, ...] = (
 )
 
 
+def is_mobile(phone_value: str) -> bool:
+    """Мобильный ли номер: в России это +79…. По таким можно писать в мессенджер."""
+    return phone_value.startswith("+79") and len(phone_value) == 12
+
+
 def host_of(url: str) -> str:
     """Имя хоста без схемы и «www»: по нему сайты из разных карт считаются одним."""
     rest = (url or "").split("://", 1)[-1]
@@ -165,7 +170,8 @@ class Company:
     reviews: int | None = None  # сколько оценок
     links: tuple[Link, ...] = ()
     schedule: str = ""
-    branch_count: int | None = None
+    branch_count: int | None = None  # сколько точек у фирмы в городе
+    chain: str = ""  # название сети, если точка в неё входит
     verified_owner: bool | None = None  # владелец подтвердил карточку
     is_advert: bool = False  # место куплено рекламой
     photos: int | None = None
@@ -279,6 +285,28 @@ class Place:
     @property
     def verified_owner(self) -> bool:
         return any(c.verified_owner for c in self.companies)
+
+    @property
+    def chain(self) -> str:
+        """Название сети, если точка в неё входит."""
+        for company in self.companies:
+            if company.chain:
+                return company.chain
+        return ""
+
+    @property
+    def branches(self) -> int:
+        """Сколько точек у этой фирмы в городе по данным карт."""
+        return max((c.branch_count or 0) for c in self.companies) if self.companies else 0
+
+    @property
+    def is_chain(self) -> bool:
+        """Сетевая точка: звонить в филиал бессмысленно, решает центр."""
+        return bool(self.chain) or self.branches > 1
+
+    @property
+    def mobile_phones(self) -> tuple[str, ...]:
+        return tuple(value for value in self.phones if is_mobile(value))
 
     def url(self, source: str) -> str:
         company = self.by_source.get(source)

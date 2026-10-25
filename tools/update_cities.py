@@ -16,12 +16,13 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mapsparser.cities import DATA_FILE, alias_candidates
 from mapsparser.http import Fetcher, FetchError
-from mapsparser.sources.twogis import SITE, parse_state, region_info
+from mapsparser.sources.twogis import SITE, entities, parse_state, region_info
 
 # Города России от ста тысяч жителей плюс столицы соседних стран, где работает 2ГИС.
 CITIES: tuple[tuple[str, str], ...] = (
@@ -109,7 +110,8 @@ CITIES: tuple[tuple[str, str], ...] = (
     ("Орск", "Оренбургская область"),
     ("Ангарск", "Иркутская область"),
     ("Энгельс", "Саратовская область"),
-    ("Благовещенск", "Амурская область"),
+    # Благовещенск намеренно не в списке: городов с таким названием два (Амурская область
+    # и Башкортостан), 2ГИС по короткому имени отдаёт башкирский. Яндекс ищет его по названию.
     ("Старый Оскол", "Белгородская область"),
     ("Великий Новгород", "Новгородская область"),
     ("Королёв", "Московская область"),
@@ -215,12 +217,12 @@ EXTRA_ALIASES: dict[str, tuple[str, ...]] = {
     "Санкт-Петербург": ("spb",),
     "Нижний Новгород": ("n_novgorod", "nnovgorod"),
     "Ростов-на-Дону": ("rostov", "rostov_na_donu"),
-    "Набережные Челны": ("chelny", "naberezhnye_chelny"),
+    "Набережные Челны": ("chelny", "naberezhnye_chelny", "n_chelny"),
     "Улан-Удэ": ("ulan_ude",),
     "Южно-Сахалинск": ("yuzhno_sahalinsk", "yuzhno-sakhalinsk"),
     "Комсомольск-на-Амуре": ("komsomolsk", "komsomolsk_na_amure"),
-    "Петропавловск-Камчатский": ("petropavlovsk_kamchatskiy", "petropavlovsk"),
-    "Каменск-Уральский": ("kamensk_uralskiy",),
+    "Петропавловск-Камчатский": ("petropavlovsk_kamchatskiy", "petropavlovsk", "petropavlovsk_kamchatsky"),
+    "Каменск-Уральский": ("kamensk_uralskiy", "kamensk_uralsky", "kamensk-uralskiy", "kamensk"),
     "Великий Новгород": ("v_novgorod", "velikiy_novgorod"),
     "Орёл": ("orel",),
     "Королёв": ("korolev",),
@@ -229,10 +231,17 @@ EXTRA_ALIASES: dict[str, tuple[str, ...]] = {
     "Горно-Алтайск": ("gorno_altaysk",),
     "Минеральные Воды": ("mineralnye_vody", "minvody"),
     "Усть-Илимск": ("ust_ilimsk",),
-    "Ханты-Мансийск": ("hanty_mansiysk", "khanty-mansiysk"),
-    "Нижний Тагил": ("n_tagil", "nizhniy_tagil"),
-    "Старый Оскол": ("stary_oskol", "staryy_oskol"),
-    "Орехово-Зуево": ("orehovo_zuevo",),
+    "Ханты-Мансийск": ("hanty_mansiysk", "khanty-mansiysk", "khanty_mansiysk"),
+    "Нижний Тагил": ("n_tagil", "nizhniy_tagil", "nizhny_tagil", "tagil"),
+    "Тольятти": ("tolyatti", "togliatti"),
+    "Волжский": ("volzhsky", "volzhskiy"),
+    "Грозный": ("grozny", "groznyy"),
+    "Благовещенск": ("blagoveshchensk", "blagoveschensk"),
+    "Мытищи": ("mytishchi", "mytischi"),
+    "Майкоп": ("maykop", "maikop"),
+    "Новый Уренгой": ("novy_urengoy", "n_urengoy", "urengoy"),
+    "Старый Оскол": ("stary_oskol", "staryy_oskol", "st_oskol"),
+    "Орехово-Зуево": ("orekhovo_zuevo", "orehovo_zuevo", "orekhovo-zuevo"),
 }
 
 
@@ -240,16 +249,37 @@ def normalise(name: str) -> str:
     return name.strip().lower().replace("ё", "е")
 
 
-def probe(fetcher: Fetcher, name: str) -> tuple[str, str] | None:
-    """Возвращает (alias, region_id) для города или None, если ни один вариант не подошёл."""
+def names_in(state: dict) -> set[str]:
+    """Города, которые 2ГИС назвал в адресах найденных организаций."""
+    found: set[str] = set()
+    for data in entities(state).values():
+        for part in data.get("adm_div") or []:
+            if part.get("type") in ("city", "settlement") and part.get("name"):
+                found.add(normalise(part["name"]))
+    return found
+
+
+def probe(fetcher: Fetcher, name: str) -> tuple[str, str, str] | None:
+    """Возвращает (alias, region_id, проект) для города или None, если вариант не подошёл.
+
+    Проверка идёт не по названию проекта: Химки, Копейск и ещё полсотни городов живут
+    внутри чужого проекта («Москва», «Челябинск»), но свой адрес у них есть и поиск по
+    нему сужается правильно. Поэтому короткое имя принимается, когда по нему находятся
+    организации, у которых в адресе стоит именно этот город, — иначе «Октябрьский»
+    уехал бы в «Октябрьск».
+    """
     for alias in (*EXTRA_ALIASES.get(name, ()), *alias_candidates(name)):
         try:
             state = parse_state(fetcher.get(f"{SITE}/{alias}"))
         except FetchError:
             continue
-        title, region_id = region_info(state)
-        if title and normalise(title) == normalise(name):
-            return alias, region_id
+        project, region_id = region_info(state)
+        try:
+            found = parse_state(fetcher.get(f"{SITE}/{alias}/search/{quote('аптека')}"))
+        except FetchError:
+            continue
+        if normalise(name) in names_in(found):
+            return alias, region_id, project
     return None
 
 
@@ -270,15 +300,17 @@ def main() -> int:
         for name, region in names:
             result = probe(fetcher, name)
             if result:
-                alias, region_id = result
+                alias, region_id, project = result
                 existing[normalise(name)] = {
                     "name": name,
                     "alias": alias,
                     "region": region,
                     "region_id": region_id,
+                    "project": project,
                 }
                 found += 1
-                print(f"  {name:<28} → {alias}")
+                inside = f"  (внутри проекта «{project}»)" if project and project != name else ""
+                print(f"  {name:<28} → {alias}{inside}")
             else:
                 print(f"  {name:<28} → не найден в 2ГИС")
 

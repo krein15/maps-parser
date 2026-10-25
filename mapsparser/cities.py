@@ -25,10 +25,16 @@ class City:
     alias: str  # «tyumen» — так его зовёт 2ГИС в адресе страницы
     region: str = ""  # «Тюменская область» — чтобы отличить одноимённые города
     region_id: str = ""  # идентификатор региона в 2ГИС
+    project: str = ""  # проект 2ГИС, в который город входит: Химки ищутся внутри «Москвы»
 
     @property
     def title(self) -> str:
         return f"{self.name} ({self.region})" if self.region else self.name
+
+    @property
+    def satellite(self) -> bool:
+        """Город ищется внутри чужого проекта 2ГИС — например, Химки внутри Москвы."""
+        return bool(self.project) and self.project != self.name
 
 
 # Буква за буквой: так 2ГИС переводит названия в латиницу.
@@ -47,9 +53,21 @@ def transliterate(text: str) -> str:
 
 
 def alias_candidates(name: str) -> list[str]:
-    """Варианты короткого имени для 2ГИС, от самого вероятного к менее."""
+    """Варианты короткого имени для 2ГИС, от самого вероятного к менее.
+
+    Единой латиницы у 2ГИС нет: «щ» бывает и sch, и shch, окончание «-ский» —
+    и skiy, и sky, а слова разделяются то чертой снизу, то дефисом, то ничем.
+    Поэтому вариантов несколько, а какой верный — показывает проверка на сайте.
+    """
     base = transliterate(name)
     variants = [base, base.replace("_", ""), base.replace("_", "-")]
+    for swapped in (base.replace("sch", "shch"), base.replace("shch", "sch")):
+        if swapped != base:
+            variants += [swapped, swapped.replace("_", ""), swapped.replace("_", "-")]
+    for ending, replacement in (("iy", "y"), ("iy", "yy"), ("y", "iy")):
+        if base.endswith(ending):
+            tail = base[: -len(ending)] + replacement
+            variants += [tail, tail.replace("_", ""), tail.replace("_", "-")]
     # Старые имена 2ГИС встречаются и в другой латинице: «h» вместо «kh», «c» вместо «ts».
     plain = base.replace("kh", "h").replace("ts", "c")
     if plain != base:
@@ -88,6 +106,7 @@ def load_catalogue() -> dict[str, City]:
                 alias=item.get("alias", ""),
                 region=item.get("region", ""),
                 region_id=str(item.get("region_id", "")),
+                project=str(item.get("project", "")),
             )
             if city.name and city.alias:
                 cities[_normalise(city.name)] = city
@@ -115,6 +134,7 @@ def remember(city: City) -> None:
         "alias": city.alias,
         "region": city.region,
         "region_id": city.region_id,
+        "project": city.project,
     }
     payload = {"cities": sorted(known.values(), key=lambda c: c["name"])}
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -131,6 +151,20 @@ def find(name: str) -> City | None:
     # «г. Тюмень», «Тюмень, Тюменская область»
     stripped = key.removeprefix("г.").removeprefix("г ").split(",")[0].strip()
     return catalogue.get(stripped)
+
+
+def find_or_guess(name: str) -> City | None:
+    """Город из справочника, а если его там нет — город без короткого имени 2ГИС.
+
+    Яндексу короткое имя не нужно: ему достаточно названия в тексте запроса. Поэтому
+    незнакомый город — не повод отказывать в сборе целиком; просто 2ГИС по нему
+    работать не сможет, и программа об этом скажет.
+    """
+    known = find(name)
+    if known:
+        return known
+    clean = (name or "").strip()
+    return City(name=clean, alias="") if clean else None
 
 
 def suggest(prefix: str, limit: int = 12) -> list[City]:

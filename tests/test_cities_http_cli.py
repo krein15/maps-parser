@@ -208,8 +208,27 @@ def test_cities_command_finds_a_city(capsys) -> None:
     assert "Тюмень" in capsys.readouterr().out
 
 
-def test_unknown_city_is_explained(capsys) -> None:
-    with pytest.raises(SystemExit) as exit_info:
-        main(["collect", "-q", "кофейня", "-c", "Городок"])
-    assert exit_info.value.code == 2
-    assert "не нашёлся" in capsys.readouterr().err
+def test_a_city_outside_the_catalogue_still_works_in_yandex() -> None:
+    """2ГИС без короткого имени города не умеет, Яндекс ищет по названию — сбор не отменяется."""
+    guessed = cities_module.find_or_guess("Городок")
+    assert guessed is not None
+    assert guessed.name == "Городок"
+    assert guessed.alias == ""
+    assert guessed.satellite is False
+
+
+def test_only_the_map_that_needs_an_alias_is_skipped(tyumen) -> None:
+    from mapsparser.sources import TwoGis, Yandex
+
+    assert TwoGis.needs_city_alias is True
+    assert Yandex.needs_city_alias is False
+    assert tyumen.alias  # у города из справочника короткое имя есть
+
+
+def test_satellite_city_is_marked_as_such() -> None:
+    """Химки ищутся внутри проекта «Москва», но поиск по их адресу сужается правильно."""
+    khimki = find("Химки")
+    if khimki is None:
+        pytest.skip("Химок нет в справочнике этой сборки")
+    assert khimki.satellite is True
+    assert khimki.project == "Москва"

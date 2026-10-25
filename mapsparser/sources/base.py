@@ -85,6 +85,7 @@ class Source:
     collector: type[Collector]
     gives: tuple[str, ...]  # виды контактов, которые карта вообще показывает
     page_size: int  # сколько организаций на странице выдачи
+    needs_city_alias: bool = False  # карте нужен её собственный адрес города
     note: str = ""  # что полезно знать про потолки источника
 
     def __post_init__(self) -> None:

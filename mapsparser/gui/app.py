@@ -232,8 +232,12 @@ class App(ctk.CTk):
             box.pack(side="left", padx=(0, 16))
         field("Карты", sources_row)
 
+        filters = ctk.CTkFrame(card.body, fg_color="transparent")
+        filters.pack(fill="x", pady=(10, 0))
         self.only_without_site = ctk.BooleanVar(value=self.prefs.only_without_site)
-        checkbox(card.body, "Только те, у кого нет сайта", self.only_without_site).pack(anchor="w", pady=(10, 0))
+        checkbox(filters, "Только те, у кого нет сайта", self.only_without_site).pack(side="left")
+        self.skip_chains = ctk.BooleanVar(value=self.prefs.skip_chains)
+        checkbox(filters, "Без сетевых точек", self.skip_chains).pack(side="left", padx=(20, 0))
 
         buttons = ctk.CTkFrame(card.body, fg_color="transparent")
         buttons.pack(fill="x", pady=(16, 0))
@@ -466,6 +470,7 @@ class App(ctk.CTk):
             use_cache=self.use_cache.get(),
             required_gaps=("website",) if self.only_without_site.get() else (),
             check_sites=self.check_sites.get(),
+            skip_chains=self.skip_chains.get(),
         )
         self._remember(city, query)
         self._clear_log()
@@ -663,6 +668,7 @@ class App(ctk.CTk):
             sources=tuple(key for key, var in self.source_vars.items() if var.get()),
             deep=self.deep.get(),
             check_sites=self.check_sites.get(),
+            skip_chains=self.skip_chains.get(),
         )
 
     def _watch_add(self) -> None:
@@ -837,6 +843,7 @@ class App(ctk.CTk):
         self.prefs.sources = [key for key, var in self.source_vars.items() if var.get()]
         self.prefs.deep = self.deep.get()
         self.prefs.only_without_site = self.only_without_site.get()
+        self.prefs.skip_chains = self.skip_chains.get()
         self.prefs.use_cache = self.use_cache.get()
         self.prefs.check_sites = self.check_sites.get()
         self.prefs.open_report = self.open_report.get()

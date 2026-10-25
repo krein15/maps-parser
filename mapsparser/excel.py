@@ -61,6 +61,17 @@ def _phones(place: Place) -> str:
     return "\n".join(pretty_phone(value) for value in place.phones)
 
 
+def _mobile(place: Place) -> str:
+    """Мобильные отдельной колонкой: по ним пишут в мессенджер, а не звонят в приёмную."""
+    return "\n".join(pretty_phone(value) for value in place.mobile_phones)
+
+
+def _chain(place: Place) -> str:
+    if place.chain:
+        return f"{place.chain}" + (f", {place.branches} точек" if place.branches > 1 else "")
+    return f"{place.branches} точек" if place.branches > 1 else ""
+
+
 def _socials(place: Place) -> str:
     return "\n".join(f"{LINK_TITLES.get(link.kind, link.kind)}: {link.value}" for link in place.socials)
 
@@ -80,6 +91,7 @@ def columns(result: Result) -> list[Column]:
         Column("Рубрика", 22, lambda p: ", ".join(p.rubrics[:3]), wrap=True),
         Column("Адрес", 32, lambda p: p.address, wrap=True),
         Column("Телефон", 19, _phones, mono=True),
+        Column("Мобильный", 19, _mobile, mono=True),
         Column("Почта", 26, lambda p: "\n".join(p.emails), mono=True),
         Column("Сайт", 30, lambda p: "\n".join(p.websites), mono=True),
         Column("Что с сайтом", 24, lambda p: p.site.summary if p.site else "", wrap=True),
@@ -87,6 +99,7 @@ def columns(result: Result) -> list[Column]:
         Column("Рейтинг", 9, lambda p: p.rating),
         Column("Оценок", 9, lambda p: p.reviews or None),
         Column("Режим работы", 28, lambda p: p.schedule, wrap=True),
+        Column("Сеть", 20, _chain, wrap=True),
         Column("Источники", 18, lambda p: _sources(p, result)),
     ]
     for source in result.settings.sources:

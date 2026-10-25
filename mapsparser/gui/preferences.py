@@ -26,6 +26,7 @@ class Preferences:
     schedule_at: str = "09:00"
     schedule_days: int = 1
     only_without_site: bool = False
+    skip_chains: bool = False
     delay: float = 1.5
     output_dir: str = ""
     open_report: bool = True

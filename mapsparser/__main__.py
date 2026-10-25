@@ -17,7 +17,7 @@ from pathlib import Path
 
 from . import __version__, scheduler
 from .cache import Cache
-from .cities import City, all_cities, find, suggest
+from .cities import City, all_cities, find, find_or_guess, suggest
 from .excel import write_default
 from .gaps import GAPS
 from .history import Changes, History, run_key
@@ -46,12 +46,15 @@ def city_or_exit(name: str) -> City:
     city = find(name)
     if city:
         return city
-    close = suggest(name, 6)
-    hint = ", ".join(c.name for c in close)
-    print(f"Город «{name}» в справочнике не нашёлся.", file=sys.stderr)
-    if hint:
-        print(f"Может быть, это: {hint}", file=sys.stderr)
-    print("Полный список — команда «cities». Добавить город: tools/update_cities.py <название>", file=sys.stderr)
+    guessed = find_or_guess(name)
+    if guessed:
+        # Яндекс ищет по названию города, 2ГИС без короткого имени не умеет.
+        print(f"Города «{name}» нет в справочнике: соберу только тем, кому короткое имя не нужно.")
+        close = suggest(name, 5)
+        if close:
+            print("Если имелся в виду другой город: " + ", ".join(c.name for c in close))
+        return guessed
+    print("Укажите город: -c Тюмень", file=sys.stderr)
     raise SystemExit(2)
 
 
@@ -72,6 +75,7 @@ def cmd_collect(args: argparse.Namespace) -> int:
         min_score=args.min_score,
         required_gaps=tuple(args.gap or ()),
         check_sites=not args.no_sites,
+        skip_chains=args.no_chains,
         remember=not args.forget,
         site_limit=args.site_limit,
     )
@@ -244,6 +248,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
         limit=args.limit,
         sources=tuple(args.source or ()),
         check_sites=not args.no_sites,
+        skip_chains=args.no_chains,
     )
     add_watch(watch)
     print(f"Под присмотром: {watch.title}")
@@ -358,6 +363,7 @@ def build_parser() -> argparse.ArgumentParser:
     collect.add_argument(
         "--gap", action="append", choices=[gap.code for gap in GAPS], help="оставить только с этим пробелом"
     )
+    collect.add_argument("--no-chains", action="store_true", help="без сетевых точек: решает не филиал, а центр")
     collect.add_argument("--no-cache", action="store_true", help="не использовать сохранённые страницы")
     collect.add_argument("--forget", action="store_true", help="не помнить этот сбор (без разбора изменений)")
     collect.add_argument("--csv", action="store_true", help="сохранить ещё и CSV")

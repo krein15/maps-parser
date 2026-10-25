@@ -4,613 +4,1198 @@
    "name": "Абакан",
    "alias": "abakan",
    "region": "Хакасия",
-   "region_id": "69"
+   "region_id": "69",
+   "project": "Абакан"
   },
   {
    "name": "Альметьевск",
    "alias": "almetevsk",
    "region": "Татарстан",
-   "region_id": "108"
+   "region_id": "108",
+   "project": "Альметьевск"
+  },
+  {
+   "name": "Анапа",
+   "alias": "anapa",
+   "region": "Краснодарский край",
+   "region_id": "74",
+   "project": "Новороссийск"
+  },
+  {
+   "name": "Ангарск",
+   "alias": "angarsk",
+   "region": "Иркутская область",
+   "region_id": "11",
+   "project": "Иркутск"
+  },
+  {
+   "name": "Арзамас",
+   "alias": "arzamas",
+   "region": "Нижегородская область",
+   "region_id": "19",
+   "project": "Нижний Новгород"
+  },
+  {
+   "name": "Армавир",
+   "alias": "armavir",
+   "region": "Краснодарский край",
+   "region_id": "253",
+   "project": "Армения"
   },
   {
    "name": "Архангельск",
    "alias": "arkhangelsk",
    "region": "Архангельская область",
-   "region_id": "49"
+   "region_id": "49",
+   "project": "Архангельск"
   },
   {
    "name": "Астрахань",
    "alias": "astrakhan",
    "region": "Астраханская область",
-   "region_id": "8"
+   "region_id": "8",
+   "project": "Астрахань"
+  },
+  {
+   "name": "Ачинск",
+   "alias": "achinsk",
+   "region": "Красноярский край",
+   "region_id": "7",
+   "project": "Красноярск"
   },
   {
    "name": "Балаково",
    "alias": "balakovo",
    "region": "Саратовская область",
-   "region_id": "121"
+   "region_id": "121",
+   "project": "Балаково"
+  },
+  {
+   "name": "Балашиха",
+   "alias": "balashikha",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Барнаул",
    "alias": "barnaul",
    "region": "Алтайский край",
-   "region_id": "4"
+   "region_id": "4",
+   "project": "Барнаул"
+  },
+  {
+   "name": "Батайск",
+   "alias": "bataysk",
+   "region": "Ростовская область",
+   "region_id": "24",
+   "project": "Ростов-на-Дону"
   },
   {
    "name": "Белгород",
    "alias": "belgorod",
    "region": "Белгородская область",
-   "region_id": "46"
+   "region_id": "46",
+   "project": "Белгород"
+  },
+  {
+   "name": "Бердск",
+   "alias": "berdsk",
+   "region": "Новосибирская область",
+   "region_id": "1",
+   "project": "Новосибирск"
+  },
+  {
+   "name": "Березники",
+   "alias": "berezniki",
+   "region": "Пермский край",
+   "region_id": "16",
+   "project": "Пермь"
   },
   {
    "name": "Бийск",
    "alias": "biysk",
    "region": "Алтайский край",
-   "region_id": "20"
+   "region_id": "20",
+   "project": "Бийск"
+  },
+  {
+   "name": "Биробиджан",
+   "alias": "birobidzhan",
+   "region": "Еврейская автономная область",
+   "region_id": "35",
+   "project": "Хабаровск"
   },
   {
    "name": "Братск",
    "alias": "bratsk",
    "region": "Иркутская область",
-   "region_id": "51"
+   "region_id": "51",
+   "project": "Братск"
   },
   {
    "name": "Брянск",
    "alias": "bryansk",
    "region": "Брянская область",
-   "region_id": "62"
+   "region_id": "62",
+   "project": "Брянск"
   },
   {
    "name": "Великий Новгород",
    "alias": "v_novgorod",
    "region": "Новгородская область",
-   "region_id": "77"
+   "region_id": "77",
+   "project": "Великий Новгород"
   },
   {
    "name": "Владивосток",
    "alias": "vladivostok",
    "region": "Приморский край",
-   "region_id": "25"
+   "region_id": "25",
+   "project": "Владивосток"
   },
   {
    "name": "Владикавказ",
    "alias": "vladikavkaz",
    "region": "Северная Осетия",
-   "region_id": "114"
+   "region_id": "114",
+   "project": "Владикавказ"
   },
   {
    "name": "Владимир",
    "alias": "vladimir",
    "region": "Владимирская область",
-   "region_id": "59"
+   "region_id": "59",
+   "project": "Владимир"
   },
   {
    "name": "Волгоград",
    "alias": "volgograd",
    "region": "Волгоградская область",
-   "region_id": "33"
+   "region_id": "33",
+   "project": "Волгоград"
   },
   {
    "name": "Волгодонск",
    "alias": "volgodonsk",
    "region": "Ростовская область",
-   "region_id": "122"
+   "region_id": "122",
+   "project": "Волгодонск"
+  },
+  {
+   "name": "Волжский",
+   "alias": "volzhsky",
+   "region": "Волгоградская область",
+   "region_id": "33",
+   "project": "Волгоград"
   },
   {
    "name": "Вологда",
    "alias": "vologda",
    "region": "Вологодская область",
-   "region_id": "78"
+   "region_id": "78",
+   "project": "Вологда"
   },
   {
    "name": "Воронеж",
    "alias": "voronezh",
    "region": "Воронежская область",
-   "region_id": "31"
+   "region_id": "31",
+   "project": "Воронеж"
+  },
+  {
+   "name": "Воткинск",
+   "alias": "votkinsk",
+   "region": "Удмуртия",
+   "region_id": "41",
+   "project": "Ижевск"
+  },
+  {
+   "name": "Геленджик",
+   "alias": "gelendzhik",
+   "region": "Краснодарский край",
+   "region_id": "74",
+   "project": "Новороссийск"
+  },
+  {
+   "name": "Горно-Алтайск",
+   "alias": "gornoaltaysk",
+   "region": "Алтай",
+   "region_id": "27",
+   "project": "Республика Алтай"
+  },
+  {
+   "name": "Грозный",
+   "alias": "grozny",
+   "region": "Чечня",
+   "region_id": "115",
+   "project": "Грозный"
+  },
+  {
+   "name": "Дербент",
+   "alias": "derbent",
+   "region": "Дагестан",
+   "region_id": "113",
+   "project": "Махачкала"
+  },
+  {
+   "name": "Дзержинск",
+   "alias": "dzerzhinsk",
+   "region": "Нижегородская область",
+   "region_id": "19",
+   "project": "Нижний Новгород"
+  },
+  {
+   "name": "Димитровград",
+   "alias": "dimitrovgrad",
+   "region": "Ульяновская область",
+   "region_id": "22",
+   "project": "Тольятти"
+  },
+  {
+   "name": "Домодедово",
+   "alias": "domodedovo",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
+  },
+  {
+   "name": "Евпатория",
+   "alias": "evpatoriya",
+   "region": "Крым",
+   "region_id": "174",
+   "project": "Крым"
   },
   {
    "name": "Екатеринбург",
    "alias": "ekaterinburg",
    "region": "Свердловская область",
-   "region_id": "9"
+   "region_id": "9",
+   "project": "Екатеринбург"
   },
   {
    "name": "Елец",
    "alias": "elets",
    "region": "Липецкая область",
-   "region_id": "126"
+   "region_id": "126",
+   "project": "Елец"
+  },
+  {
+   "name": "Ессентуки",
+   "alias": "essentuki",
+   "region": "Ставропольский край",
+   "region_id": "89",
+   "project": "КавМинВоды"
+  },
+  {
+   "name": "Жуковский",
+   "alias": "zhukovskiy",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
+  },
+  {
+   "name": "Заводоуковск",
+   "alias": "zavodoukovsk",
+   "region": "Тюменская область",
+   "region_id": "13",
+   "project": "Тюмень"
+  },
+  {
+   "name": "Златоуст",
+   "alias": "zlatoust",
+   "region": "Челябинская область",
+   "region_id": "87",
+   "project": "Миасс и Златоуст"
   },
   {
    "name": "Иваново",
    "alias": "ivanovo",
    "region": "Ивановская область",
-   "region_id": "65"
+   "region_id": "65",
+   "project": "Иваново"
   },
   {
    "name": "Ижевск",
    "alias": "izhevsk",
    "region": "Удмуртия",
-   "region_id": "41"
+   "region_id": "41",
+   "project": "Ижевск"
   },
   {
    "name": "Иркутск",
    "alias": "irkutsk",
    "region": "Иркутская область",
-   "region_id": "11"
+   "region_id": "11",
+   "project": "Иркутск"
   },
   {
    "name": "Ишим",
    "alias": "ishim",
    "region": "Тюменская область",
-   "region_id": "205"
+   "region_id": "205",
+   "project": "Ишим"
   },
   {
    "name": "Йошкар-Ола",
    "alias": "yoshkarola",
    "region": "Марий Эл",
-   "region_id": "70"
+   "region_id": "70",
+   "project": "Йошкар-Ола"
   },
   {
    "name": "Казань",
    "alias": "kazan",
    "region": "Татарстан",
-   "region_id": "21"
+   "region_id": "21",
+   "project": "Казань"
   },
   {
    "name": "Калининград",
    "alias": "kaliningrad",
    "region": "Калининградская область",
-   "region_id": "40"
+   "region_id": "40",
+   "project": "Калининград"
   },
   {
    "name": "Калуга",
    "alias": "kaluga",
    "region": "Калужская область",
-   "region_id": "61"
+   "region_id": "61",
+   "project": "Калуга"
   },
   {
    "name": "Камышин",
    "alias": "kamyshin",
    "region": "Волгоградская область",
-   "region_id": "127"
+   "region_id": "127",
+   "project": "Камышин"
   },
   {
    "name": "Кемерово",
    "alias": "kemerovo",
    "region": "Кемеровская область",
-   "region_id": "5"
+   "region_id": "5",
+   "project": "Кемерово"
+  },
+  {
+   "name": "Керчь",
+   "alias": "kerch",
+   "region": "Крым",
+   "region_id": "174",
+   "project": "Крым"
   },
   {
    "name": "Киров",
    "alias": "kirov",
    "region": "Кировская область",
-   "region_id": "58"
+   "region_id": "58",
+   "project": "Киров"
+  },
+  {
+   "name": "Кисловодск",
+   "alias": "kislovodsk",
+   "region": "Ставропольский край",
+   "region_id": "89",
+   "project": "КавМинВоды"
   },
   {
    "name": "Ковров",
    "alias": "kovrov",
    "region": "Владимирская область",
-   "region_id": "129"
+   "region_id": "129",
+   "project": "Ковров"
   },
   {
    "name": "Когалым",
    "alias": "kogalym",
    "region": "Ханты-Мансийский автономный округ",
-   "region_id": "207"
+   "region_id": "207",
+   "project": "Когалым"
+  },
+  {
+   "name": "Коломна",
+   "alias": "kolomna",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Комсомольск-на-Амуре",
    "alias": "komsomolsk",
    "region": "Хабаровский край",
-   "region_id": "94"
+   "region_id": "94",
+   "project": "Комсомольск-на-Амуре"
+  },
+  {
+   "name": "Копейск",
+   "alias": "kopeysk",
+   "region": "Челябинская область",
+   "region_id": "15",
+   "project": "Челябинск"
+  },
+  {
+   "name": "Королёв",
+   "alias": "korolev",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Кострома",
    "alias": "kostroma",
    "region": "Костромская область",
-   "region_id": "34"
+   "region_id": "34",
+   "project": "Кострома"
+  },
+  {
+   "name": "Красногорск",
+   "alias": "krasnogorsk",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Краснодар",
    "alias": "krasnodar",
    "region": "Краснодарский край",
-   "region_id": "23"
+   "region_id": "23",
+   "project": "Краснодар"
   },
   {
    "name": "Красноярск",
    "alias": "krasnoyarsk",
    "region": "Красноярский край",
-   "region_id": "7"
+   "region_id": "7",
+   "project": "Красноярск"
+  },
+  {
+   "name": "Кропоткин",
+   "alias": "kropotkin",
+   "region": "Краснодарский край",
+   "region_id": "106",
+   "project": "Армавир"
   },
   {
    "name": "Курган",
    "alias": "kurgan",
    "region": "Курганская область",
-   "region_id": "10"
+   "region_id": "10",
+   "project": "Курган"
   },
   {
    "name": "Курск",
    "alias": "kursk",
    "region": "Курская область",
-   "region_id": "73"
+   "region_id": "73",
+   "project": "Курск"
+  },
+  {
+   "name": "Кызыл",
+   "alias": "kyzyl",
+   "region": "Тыва",
+   "region_id": "69",
+   "project": "Абакан"
+  },
+  {
+   "name": "Лангепас",
+   "alias": "langepas",
+   "region": "Ханты-Мансийский автономный округ",
+   "region_id": "12",
+   "project": "Нижневартовск"
   },
   {
    "name": "Липецк",
    "alias": "lipetsk",
    "region": "Липецкая область",
-   "region_id": "56"
+   "region_id": "56",
+   "project": "Липецк"
+  },
+  {
+   "name": "Люберцы",
+   "alias": "lyubertsy",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Магадан",
    "alias": "magadan",
    "region": "Магаданская область",
-   "region_id": "158"
+   "region_id": "158",
+   "project": "Магадан"
   },
   {
    "name": "Магнитогорск",
    "alias": "magnitogorsk",
    "region": "Челябинская область",
-   "region_id": "26"
+   "region_id": "26",
+   "project": "Магнитогорск"
+  },
+  {
+   "name": "Майкоп",
+   "alias": "maikop",
+   "region": "Адыгея",
+   "region_id": "131",
+   "project": "Майкоп"
   },
   {
    "name": "Махачкала",
    "alias": "makhachkala",
    "region": "Дагестан",
-   "region_id": "113"
+   "region_id": "113",
+   "project": "Махачкала"
+  },
+  {
+   "name": "Мегион",
+   "alias": "megion",
+   "region": "Ханты-Мансийский автономный округ",
+   "region_id": "12",
+   "project": "Нижневартовск"
+  },
+  {
+   "name": "Миасс",
+   "alias": "miass",
+   "region": "Челябинская область",
+   "region_id": "87",
+   "project": "Миасс и Златоуст"
+  },
+  {
+   "name": "Минеральные Воды",
+   "alias": "mineralnye-vody",
+   "region": "Ставропольский край",
+   "region_id": "89",
+   "project": "КавМинВоды"
   },
   {
    "name": "Москва",
    "alias": "moscow",
    "region": "Москва",
-   "region_id": "32"
+   "region_id": "32",
+   "project": "Москва"
+  },
+  {
+   "name": "Мурманск",
+   "alias": "murmansk",
+   "region": "Мурманская область",
+   "region_id": "96",
+   "project": "Мурманская область"
   },
   {
    "name": "Муром",
    "alias": "murom",
    "region": "Владимирская область",
-   "region_id": "132"
+   "region_id": "132",
+   "project": "Муром"
+  },
+  {
+   "name": "Мытищи",
+   "alias": "mytishchi",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Назрань",
    "alias": "nazran",
    "region": "Ингушетия",
-   "region_id": "154"
+   "region_id": "154",
+   "project": "Назрань"
   },
   {
    "name": "Нальчик",
    "alias": "nalchik",
    "region": "Кабардино-Балкария",
-   "region_id": "134"
+   "region_id": "134",
+   "project": "Нальчик"
   },
   {
    "name": "Находка",
    "alias": "nahodka",
    "region": "Приморский край",
-   "region_id": "82"
+   "region_id": "82",
+   "project": "Находка"
   },
   {
    "name": "Невинномысск",
    "alias": "nevinnomyssk",
    "region": "Ставропольский край",
-   "region_id": "135"
+   "region_id": "135",
+   "project": "Невинномысск"
+  },
+  {
+   "name": "Нефтекамск",
+   "alias": "neftekamsk",
+   "region": "Башкортостан",
+   "region_id": "41",
+   "project": "Ижевск"
+  },
+  {
+   "name": "Нефтеюганск",
+   "alias": "nefteyugansk",
+   "region": "Ханты-Мансийский автономный округ",
+   "region_id": "39",
+   "project": "Сургут"
   },
   {
    "name": "Нижневартовск",
    "alias": "nizhnevartovsk",
    "region": "Ханты-Мансийский автономный округ",
-   "region_id": "12"
+   "region_id": "12",
+   "project": "Нижневартовск"
+  },
+  {
+   "name": "Нижнекамск",
+   "alias": "nizhnekamsk",
+   "region": "Татарстан",
+   "region_id": "29",
+   "project": "Набережные Челны"
   },
   {
    "name": "Нижний Новгород",
    "alias": "n_novgorod",
    "region": "Нижегородская область",
-   "region_id": "19"
+   "region_id": "19",
+   "project": "Нижний Новгород"
   },
   {
    "name": "Новокузнецк",
    "alias": "novokuznetsk",
    "region": "Кемеровская область",
-   "region_id": "6"
+   "region_id": "6",
+   "project": "Новокузнецк"
+  },
+  {
+   "name": "Новомосковск",
+   "alias": "novomoskovsk",
+   "region": "Тульская область",
+   "region_id": "36",
+   "project": "Тула"
   },
   {
    "name": "Новороссийск",
    "alias": "novorossiysk",
    "region": "Краснодарский край",
-   "region_id": "74"
+   "region_id": "74",
+   "project": "Новороссийск"
   },
   {
    "name": "Новосибирск",
    "alias": "novosibirsk",
    "region": "Новосибирская область",
-   "region_id": "1"
+   "region_id": "1",
+   "project": "Новосибирск"
+  },
+  {
+   "name": "Новоуральск",
+   "alias": "novouralsk",
+   "region": "Свердловская область",
+   "region_id": "1",
+   "project": "Новосибирск"
+  },
+  {
+   "name": "Новочебоксарск",
+   "alias": "novocheboksarsk",
+   "region": "Чувашия",
+   "region_id": "53",
+   "project": "Чебоксары"
   },
   {
    "name": "Новочеркасск",
    "alias": "novocherkassk",
    "region": "Ростовская область",
-   "region_id": "137"
+   "region_id": "137",
+   "project": "Новочеркасск"
+  },
+  {
+   "name": "Новый Уренгой",
+   "alias": "n_urengoy",
+   "region": "Ямало-Ненецкий автономный округ",
+   "region_id": "139",
+   "project": "Новый Уренгой"
   },
   {
    "name": "Норильск",
    "alias": "norilsk",
    "region": "Красноярский край",
-   "region_id": "76"
+   "region_id": "76",
+   "project": "Норильск"
   },
   {
    "name": "Ноябрьск",
    "alias": "noyabrsk",
    "region": "Ямало-Ненецкий автономный округ",
-   "region_id": "103"
+   "region_id": "103",
+   "project": "Ноябрьск"
+  },
+  {
+   "name": "Обнинск",
+   "alias": "obninsk",
+   "region": "Калужская область",
+   "region_id": "61",
+   "project": "Калуга"
+  },
+  {
+   "name": "Одинцово",
+   "alias": "odintsovo",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Омск",
    "alias": "omsk",
    "region": "Омская область",
-   "region_id": "2"
+   "region_id": "2",
+   "project": "Омск"
   },
   {
    "name": "Оренбург",
    "alias": "orenburg",
    "region": "Оренбургская область",
-   "region_id": "48"
+   "region_id": "48",
+   "project": "Оренбург"
   },
   {
    "name": "Орск",
    "alias": "orsk",
    "region": "Оренбургская область",
-   "region_id": "142"
+   "region_id": "142",
+   "project": "Орск"
   },
   {
    "name": "Орёл",
    "alias": "orel",
    "region": "Орловская область",
-   "region_id": "71"
+   "region_id": "71",
+   "project": "Орёл"
   },
   {
    "name": "Пенза",
    "alias": "penza",
    "region": "Пензенская область",
-   "region_id": "42"
+   "region_id": "42",
+   "project": "Пенза"
+  },
+  {
+   "name": "Первоуральск",
+   "alias": "pervouralsk",
+   "region": "Свердловская область",
+   "region_id": "9",
+   "project": "Екатеринбург"
   },
   {
    "name": "Пермь",
    "alias": "perm",
    "region": "Пермский край",
-   "region_id": "16"
+   "region_id": "16",
+   "project": "Пермь"
   },
   {
    "name": "Петрозаводск",
    "alias": "petrozavodsk",
    "region": "Карелия",
-   "region_id": "80"
+   "region_id": "80",
+   "project": "Петрозаводск"
+  },
+  {
+   "name": "Подольск",
+   "alias": "podolsk",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
+  },
+  {
+   "name": "Прокопьевск",
+   "alias": "prokopevsk",
+   "region": "Кемеровская область",
+   "region_id": "6",
+   "project": "Новокузнецк"
   },
   {
    "name": "Псков",
    "alias": "pskov",
    "region": "Псковская область",
-   "region_id": "90"
+   "region_id": "90",
+   "project": "Псков"
+  },
+  {
+   "name": "Пушкино",
+   "alias": "pushkino",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
+  },
+  {
+   "name": "Пятигорск",
+   "alias": "pyatigorsk",
+   "region": "Ставропольский край",
+   "region_id": "89",
+   "project": "КавМинВоды"
   },
   {
    "name": "Ростов-на-Дону",
    "alias": "rostov",
    "region": "Ростовская область",
-   "region_id": "24"
+   "region_id": "24",
+   "project": "Ростов-на-Дону"
   },
   {
    "name": "Рубцовск",
    "alias": "rubtsovsk",
    "region": "Алтайский край",
-   "region_id": "143"
+   "region_id": "143",
+   "project": "Рубцовск"
   },
   {
    "name": "Рыбинск",
    "alias": "rybinsk",
    "region": "Ярославская область",
-   "region_id": "144"
+   "region_id": "144",
+   "project": "Рыбинск"
   },
   {
    "name": "Рязань",
    "alias": "ryazan",
    "region": "Рязанская область",
-   "region_id": "44"
+   "region_id": "44",
+   "project": "Рязань"
+  },
+  {
+   "name": "Салават",
+   "alias": "salavat",
+   "region": "Башкортостан",
+   "region_id": "54",
+   "project": "Стерлитамак"
   },
   {
    "name": "Салехард",
    "alias": "salekhard",
    "region": "Ямало-Ненецкий автономный округ",
-   "region_id": "160"
+   "region_id": "160",
+   "project": "Салехард"
   },
   {
    "name": "Самара",
    "alias": "samara",
    "region": "Самарская область",
-   "region_id": "18"
+   "region_id": "18",
+   "project": "Самара"
   },
   {
    "name": "Санкт-Петербург",
    "alias": "spb",
    "region": "Санкт-Петербург",
-   "region_id": "38"
+   "region_id": "38",
+   "project": "Санкт-Петербург"
   },
   {
    "name": "Саранск",
    "alias": "saransk",
    "region": "Мордовия",
-   "region_id": "85"
+   "region_id": "85",
+   "project": "Саранск"
+  },
+  {
+   "name": "Сарапул",
+   "alias": "sarapul",
+   "region": "Удмуртия",
+   "region_id": "41",
+   "project": "Ижевск"
   },
   {
    "name": "Саратов",
    "alias": "saratov",
    "region": "Саратовская область",
-   "region_id": "43"
+   "region_id": "43",
+   "project": "Саратов"
+  },
+  {
+   "name": "Севастополь",
+   "alias": "sevastopol",
+   "region": "Севастополь",
+   "region_id": "174",
+   "project": "Крым"
+  },
+  {
+   "name": "Северодвинск",
+   "alias": "severodvinsk",
+   "region": "Архангельская область",
+   "region_id": "49",
+   "project": "Архангельск"
+  },
+  {
+   "name": "Серпухов",
+   "alias": "serpuhov",
+   "region": "Московская область",
+   "region_id": "241",
+   "project": "Московская область"
+  },
+  {
+   "name": "Симферополь",
+   "alias": "simferopol",
+   "region": "Крым",
+   "region_id": "174",
+   "project": "Крым"
   },
   {
    "name": "Смоленск",
    "alias": "smolensk",
    "region": "Смоленская область",
-   "region_id": "63"
+   "region_id": "63",
+   "project": "Смоленск"
   },
   {
    "name": "Сочи",
    "alias": "sochi",
    "region": "Краснодарский край",
-   "region_id": "30"
+   "region_id": "30",
+   "project": "Сочи"
   },
   {
    "name": "Ставрополь",
    "alias": "stavropol",
    "region": "Ставропольский край",
-   "region_id": "57"
+   "region_id": "57",
+   "project": "Ставрополь"
   },
   {
    "name": "Стерлитамак",
    "alias": "sterlitamak",
    "region": "Башкортостан",
-   "region_id": "54"
+   "region_id": "54",
+   "project": "Стерлитамак"
   },
   {
    "name": "Сургут",
    "alias": "surgut",
    "region": "Ханты-Мансийский автономный округ",
-   "region_id": "39"
+   "region_id": "39",
+   "project": "Сургут"
+  },
+  {
+   "name": "Сызрань",
+   "alias": "syzran",
+   "region": "Самарская область",
+   "region_id": "22",
+   "project": "Тольятти"
   },
   {
    "name": "Сыктывкар",
    "alias": "syktyvkar",
    "region": "Коми",
-   "region_id": "72"
+   "region_id": "72",
+   "project": "Сыктывкар"
   },
   {
    "name": "Таганрог",
    "alias": "taganrog",
    "region": "Ростовская область",
-   "region_id": "116"
+   "region_id": "116",
+   "project": "Таганрог"
   },
   {
    "name": "Тамбов",
    "alias": "tambov",
    "region": "Тамбовская область",
-   "region_id": "81"
+   "region_id": "81",
+   "project": "Тамбов"
   },
   {
    "name": "Тверь",
    "alias": "tver",
    "region": "Тверская область",
-   "region_id": "47"
+   "region_id": "47",
+   "project": "Тверь"
+  },
+  {
+   "name": "Тихорецк",
+   "alias": "tihoreck",
+   "region": "Краснодарский край",
+   "region_id": "283",
+   "project": "Краснодарский край"
   },
   {
    "name": "Тобольск",
    "alias": "tobolsk",
    "region": "Тюменская область",
-   "region_id": "97"
+   "region_id": "97",
+   "project": "Тобольск"
+  },
+  {
+   "name": "Тольятти",
+   "alias": "togliatti",
+   "region": "Самарская область",
+   "region_id": "22",
+   "project": "Тольятти"
   },
   {
    "name": "Томск",
    "alias": "tomsk",
    "region": "Томская область",
-   "region_id": "3"
+   "region_id": "3",
+   "project": "Томск"
   },
   {
    "name": "Тула",
    "alias": "tula",
    "region": "Тульская область",
-   "region_id": "36"
+   "region_id": "36",
+   "project": "Тула"
   },
   {
    "name": "Тюмень",
    "alias": "tyumen",
    "region": "Тюменская область",
-   "region_id": "13"
+   "region_id": "13",
+   "project": "Тюмень"
   },
   {
    "name": "Улан-Удэ",
    "alias": "ulanude",
    "region": "Бурятия",
-   "region_id": "37"
+   "region_id": "37",
+   "project": "Улан-Удэ"
   },
   {
    "name": "Ульяновск",
    "alias": "ulyanovsk",
    "region": "Ульяновская область",
-   "region_id": "55"
+   "region_id": "55",
+   "project": "Ульяновск"
+  },
+  {
+   "name": "Усть-Илимск",
+   "alias": "ust-ilimsk",
+   "region": "Иркутская область",
+   "region_id": "1",
+   "project": "Новосибирск"
   },
   {
    "name": "Уфа",
    "alias": "ufa",
    "region": "Башкортостан",
-   "region_id": "17"
+   "region_id": "17",
+   "project": "Уфа"
   },
   {
    "name": "Ухта",
    "alias": "ukhta",
    "region": "Коми",
-   "region_id": "204"
+   "region_id": "204",
+   "project": "Ухта"
   },
   {
    "name": "Хабаровск",
    "alias": "khabarovsk",
    "region": "Хабаровский край",
-   "region_id": "35"
+   "region_id": "35",
+   "project": "Хабаровск"
   },
   {
    "name": "Хасавюрт",
    "alias": "khasavyurt",
    "region": "Дагестан",
-   "region_id": "151"
+   "region_id": "151",
+   "project": "Хасавюрт"
+  },
+  {
+   "name": "Химки",
+   "alias": "khimki",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Чебоксары",
    "alias": "cheboksary",
    "region": "Чувашия",
-   "region_id": "53"
+   "region_id": "53",
+   "project": "Чебоксары"
   },
   {
    "name": "Челябинск",
    "alias": "chelyabinsk",
    "region": "Челябинская область",
-   "region_id": "15"
+   "region_id": "15",
+   "project": "Челябинск"
+  },
+  {
+   "name": "Череповец",
+   "alias": "cherepovets",
+   "region": "Вологодская область",
+   "region_id": "78",
+   "project": "Вологда"
   },
   {
    "name": "Черкесск",
    "alias": "cherkessk",
    "region": "Карачаево-Черкесия",
-   "region_id": "118"
+   "region_id": "118",
+   "project": "Черкесск"
   },
   {
    "name": "Чита",
    "alias": "chita",
    "region": "Забайкальский край",
-   "region_id": "64"
+   "region_id": "64",
+   "project": "Чита"
   },
   {
    "name": "Шахты",
    "alias": "shakhty",
    "region": "Ростовская область",
-   "region_id": "152"
+   "region_id": "152",
+   "project": "Шахты"
+  },
+  {
+   "name": "Щёлково",
+   "alias": "shchelkovo",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
+  },
+  {
+   "name": "Электросталь",
+   "alias": "elektrostal",
+   "region": "Московская область",
+   "region_id": "32",
+   "project": "Москва"
   },
   {
    "name": "Элиста",
    "alias": "elista",
    "region": "Калмыкия",
-   "region_id": "153"
+   "region_id": "153",
+   "project": "Элиста"
+  },
+  {
+   "name": "Энгельс",
+   "alias": "engels",
+   "region": "Саратовская область",
+   "region_id": "43",
+   "project": "Саратов"
   },
   {
    "name": "Южно-Сахалинск",
    "alias": "yuzhnosakhalinsk",
    "region": "Сахалинская область",
-   "region_id": "88"
+   "region_id": "88",
+   "project": "Южно-Сахалинск"
   },
   {
    "name": "Якутск",
    "alias": "yakutsk",
    "region": "Саха (Якутия)",
-   "region_id": "50"
+   "region_id": "50",
+   "project": "Якутск"
   },
   {
    "name": "Ярославль",
    "alias": "yaroslavl",
    "region": "Ярославская область",
-   "region_id": "28"
+   "region_id": "28",
+   "project": "Ярославль"
   }
  ]
 }

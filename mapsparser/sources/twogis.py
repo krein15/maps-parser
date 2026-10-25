@@ -383,5 +383,6 @@ TwoGis = Source(
     collector=TwoGisCollector,
     gives=(PHONE, EMAIL, WEBSITE, VK, TELEGRAM, WHATSAPP, INSTAGRAM, ODNOKLASSNIKI, YOUTUBE, VIBER),
     page_size=PAGE_SIZE,
+    needs_city_alias=True,  # без короткого имени города 2ГИС отвечает 404
     note="12 мест на странице, не больше 5 страниц на запрос; контакты — только в карточке",
 )

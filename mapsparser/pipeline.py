@@ -42,6 +42,7 @@ class Settings:
     tiles: int = 0
     min_score: int = 0
     required_gaps: tuple[str, ...] = ()  # коды пробелов, без которых фирма не нужна
+    skip_chains: bool = False  # выкинуть сетевые точки: решение принимает не филиал
     check_sites: bool = True  # заходить на сайты фирм за почтами и состоянием сайта
     remember: bool = True  # помнить сбор, чтобы в следующий раз показать изменения
     history_dir: Path | None = None
@@ -112,6 +113,10 @@ def run(
 
     with Fetcher(delay=settings.delay, cache=cache, log=say, stop=stop) as fetcher:
         for source in settings.sources:
+            if source.needs_city_alias and not settings.city.alias:
+                # Город не из справочника: Яндекс найдёт его по названию, 2ГИС — нет.
+                say(f"— {source.title} этот город не знает, пропускаю его")
+                continue
             if stop and stop():
                 # Кнопку «Остановить» нажали между картами: ко второй уже не идём.
                 result.stopped = True
@@ -241,6 +246,8 @@ def _check_sites(
 
 def _wanted(place: Place, settings: Settings, context: gaps_module.Context) -> bool:
     if place.score < settings.min_score:
+        return False
+    if settings.skip_chains and place.is_chain:
         return False
     if settings.required_gaps:
         codes = set(gaps_module.codes_for(place, context))

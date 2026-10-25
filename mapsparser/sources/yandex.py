@@ -151,6 +151,7 @@ def company_from(item: dict[str, Any], city: City) -> Company | None:
         links=links_from(item),
         schedule=clean_title(item.get("workingTimeText", "")),
         branch_count=None,
+        chain=clean_title((item.get("chain") or {}).get("name", "")),
         verified_owner=bool(properties.get("has_verified_owner")) if properties else None,
         is_advert=bool(item.get("advert") or item.get("direct")),
         photos=int(photos) if photos else None,
