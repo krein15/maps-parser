@@ -109,3 +109,27 @@ def test_unknown_niche_is_explained(capsys) -> None:
         main(["collect", "-c", "Тюмень", "--niche", "Космодромы"])
     assert exit_info.value.code == 2
     assert "не нашлась" in capsys.readouterr().err
+
+
+def test_a_firm_found_by_two_queries_is_fetched_once(tyumen, monkeypatch, twogis_pages, yandex_pages) -> None:
+    """Иначе ниша из шести слов открывала бы карточки одной фирмы шесть раз."""
+    from mapsparser.pipeline import run
+
+    fetcher = FakeFetcher({**twogis_pages, **yandex_pages})
+    monkeypatch.setattr("mapsparser.pipeline.Fetcher", lambda **_kwargs: fetcher)
+    run(
+        Settings(
+            query="кофейня",
+            queries=("кофейня", "пекарня", "кондитерская"),
+            city=tyumen,
+            sources=[TwoGis],
+            limit=50,
+            deep=True,
+            use_cache=False,
+            check_sites=False,
+            remember=False,
+        )
+    )
+    cards = [url for url in fetcher.asked if "/firm/" in url]
+    assert len(cards) == len(set(cards))
+    assert len(cards) == 3  # три фирмы в сохранённой выдаче, по разу каждая

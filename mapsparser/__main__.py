@@ -200,9 +200,9 @@ def cmd_sources(_args: argparse.Namespace) -> int:
 
 
 def cmd_gaps(_args: argparse.Namespace) -> int:
-    print(f"{'код':<12} {'вес':>4}  пробел")
+    print(f"{'код':<16} {'вес':>4}  пробел")
     for gap in GAPS:
-        print(f"{gap.code:<12} {gap.weight:>4}  {gap.title} — {gap.hint}")
+        print(f"{gap.code:<16} {gap.weight:>4}  {gap.title} — {gap.hint}")
     return 0
 
 

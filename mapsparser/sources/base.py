@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from typing import Any
 
 from ..cities import City
 from ..http import Fetcher
@@ -60,6 +61,9 @@ class Collector:
         self.fetcher = fetcher
         self.log = log or (lambda _message: None)
         self.on_company = on_company or (lambda _company: None)
+        # Один сборщик обходит все запросы ниши. Фирма, найденная и по «СТО», и по
+        # «автосервису», — одна и та же: второй раз её карточку открывать незачем.
+        self.seen_ids: set[str] = set()
 
     def collect(self, request: SearchRequest) -> Report:
         raise NotImplementedError
@@ -67,6 +71,12 @@ class Collector:
     def enrich(self, company: Company) -> Company:
         """Добирает контакты из карточки. По умолчанию добирать нечего."""
         return company
+
+    def fresh(self, found: dict[str, Any]) -> dict[str, Any]:
+        """Оставляет только те организации, которых этот сборщик ещё не видел."""
+        new = {key: value for key, value in found.items() if key not in self.seen_ids}
+        self.seen_ids.update(new)
+        return new
 
     # Мелкая помощь наследникам
     def _emit(self, report: Report, company: Company) -> None:

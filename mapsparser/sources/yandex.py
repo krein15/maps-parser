@@ -216,7 +216,7 @@ class YandexCollector(Collector):
         report.exhaustive = len(found) < request.limit
         self.log(f"Яндекс: в выдаче {len(found)} организаций")
 
-        companies = list(found.values())[: request.limit]
+        companies = list(self.fresh(found).values())[: request.limit]
         for company in companies:
             self._emit(report, company)
         return report
