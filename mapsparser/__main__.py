@@ -12,9 +12,10 @@ import contextlib
 import os
 import subprocess
 import sys
+from datetime import time
 from pathlib import Path
 
-from . import __version__
+from . import __version__, scheduler
 from .cache import Cache
 from .cities import City, all_cities, find, suggest
 from .excel import write_default
@@ -23,12 +24,14 @@ from .history import Changes, History, run_key
 from .history import summary as history_summary
 from .http import Stopped
 from .models import Place
+from .monitor import Watch, add_watch, check_all, load_watchlist, remove_watch
 from .niches import find as find_niche
 from .niches import load_niches
 from .normalize import pretty_phone
 from .pipeline import Settings, run
 from .settings import APP_TITLE, BRAND, default_cache_dir, default_output_dir
 from .sources import all_sources, get, source_keys
+from .telegram import Account, TelegramError, check_token, env_file, find_chat, load_account, save_account, send
 
 
 def setup_console() -> None:
@@ -218,6 +221,116 @@ def cmd_history(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_watch(args: argparse.Namespace) -> int:
+    if args.what == "list" or not args.what:
+        watches = load_watchlist()
+        for watch in watches:
+            extra = f", до {watch.limit} фирм" + ("" if watch.check_sites else ", без проверки сайтов")
+            print(f"  {watch.title}{extra}")
+        print(f"\nНиш под присмотром: {len(watches)}")
+        if watches:
+            print("Проверить сейчас — «monitor», по расписанию — «schedule on»")
+        return 0
+    if not args.city or not args.query:
+        print("Нужны город и ниша: watch add -c Тюмень -q Автосервисы", file=sys.stderr)
+        return 2
+    city = city_or_exit(args.city)
+    if args.what == "remove":
+        print("Убрано." if remove_watch(city.name, args.query) else "Такой ниши в списке нет.")
+        return 0
+    watch = Watch(
+        city=city.name,
+        query=args.query,
+        limit=args.limit,
+        sources=tuple(args.source or ()),
+        check_sites=not args.no_sites,
+    )
+    add_watch(watch)
+    print(f"Под присмотром: {watch.title}")
+    print("Первая проверка запомнит нишу, со второй начнут приходить новые фирмы.")
+    return 0
+
+
+def cmd_monitor(args: argparse.Namespace) -> int:
+    results = check_all(log_message=lambda message: print(" ", message), notify=not args.no_notify)
+    if not results:
+        return 1
+    print()
+    for outcome in results:
+        if outcome.error:
+            print(f"  {outcome.watch.title}: {outcome.error}")
+        else:
+            print(f"  {outcome.watch.title}: фирм {outcome.found}, новых {outcome.new_count}, "
+                  f"отправлено {outcome.sent}")
+    return 0 if not any(outcome.error for outcome in results) else 1
+
+
+def cmd_schedule(args: argparse.Namespace) -> int:
+    try:
+        if args.what == "on":
+            at = _parse_time(args.at)
+            scheduler.create(at, days=args.days)
+            print(f"Проверки включены: каждые {args.days} сут. в {at:%H:%M}.")
+            if not load_watchlist():
+                print("Список наблюдений пуст — добавьте нишу: watch add -c Тюмень -q Автосервисы")
+            return 0
+        if args.what == "off":
+            scheduler.disable()
+            print("Проверки выключены. Настройки задания сохранены.")
+            return 0
+        if args.what == "remove":
+            print("Задание удалено." if scheduler.remove() else "Задания и не было.")
+            return 0
+        state = scheduler.status()
+        if not state.exists:
+            print("Задание не создано. Включить — «schedule on».")
+            return 0
+        print(f"Задание: {'включено' if state.enabled else 'выключено'}")
+        print(f"  следующий запуск: {state.next_run or '—'}")
+        print(f"  прошлый запуск:   {state.last_run or '—'} ({state.last_result or '—'})")
+        return 0
+    except scheduler.SchedulerError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+
+
+def _parse_time(text: str) -> time:
+    try:
+        hours, _, minutes = text.partition(":")
+        return time(int(hours), int(minutes or 0))
+    except ValueError:
+        print(f"Время «{text}» не разобрать, нужно вида 09:00", file=sys.stderr)
+        raise SystemExit(2) from None
+
+
+def cmd_telegram(args: argparse.Namespace) -> int:
+    account = load_account()
+    token = args.token or account.token
+    chat = args.chat or account.chat
+    try:
+        if args.find_chat:
+            if not token:
+                print("Сначала задайте токен: telegram --token …", file=sys.stderr)
+                return 2
+            chat = find_chat(token)
+            print(f"Ваш чат: {chat}")
+        if args.token or args.chat or args.find_chat:
+            name = check_token(token) if token else ""
+            path = save_account(Account(token=token, chat=chat))
+            print(f"Сохранено в {path}" + (f"; бот @{name}" if name else ""))
+        if args.test:
+            send(Account(token=token, chat=chat), "Карты Парсер на связи: проверка прошла.")
+            print("Сообщение отправлено.")
+        if not any((args.token, args.chat, args.find_chat, args.test)):
+            ready = "настроен" if Account(token=token, chat=chat).ready else "не настроен"
+            print(f"Telegram {ready}. Файл настроек: {env_file()}")
+            print("Токен выдаёт @BotFather; номер чата подскажет «telegram --find-chat».")
+        return 0
+    except TelegramError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="mapsparser",
@@ -264,6 +377,32 @@ def build_parser() -> argparse.ArgumentParser:
     cache = commands.add_parser("cache", help="сохранённые страницы")
     cache.add_argument("--clear", action="store_true", help="очистить")
     cache.set_defaults(func=cmd_cache)
+
+    watch = commands.add_parser("watch", help="ниши под присмотром")
+    watch.add_argument("what", nargs="?", choices=["add", "remove", "list"], default="list")
+    watch.add_argument("-c", "--city", help="город")
+    watch.add_argument("-q", "--query", help="ниша или слово")
+    watch.add_argument("-l", "--limit", type=int, default=300, help="сколько фирм собирать при проверке")
+    watch.add_argument("-s", "--source", action="append", choices=source_keys(), help="только эта карта")
+    watch.add_argument("--no-sites", action="store_true", help="не заходить на сайты фирм")
+    watch.set_defaults(func=cmd_watch)
+
+    monitor = commands.add_parser("monitor", help="проверить ниши и прислать новые фирмы в Telegram")
+    monitor.add_argument("--no-notify", action="store_true", help="только посчитать, ничего не отправлять")
+    monitor.set_defaults(func=cmd_monitor)
+
+    schedule = commands.add_parser("schedule", help="проверки по расписанию")
+    schedule.add_argument("what", nargs="?", choices=["on", "off", "status", "remove"], default="status")
+    schedule.add_argument("--at", default="09:00", help="во сколько проверять, например 09:00")
+    schedule.add_argument("--days", type=int, default=1, help="раз во сколько суток")
+    schedule.set_defaults(func=cmd_schedule)
+
+    telegram = commands.add_parser("telegram", help="бот и чат для уведомлений")
+    telegram.add_argument("--token", help="токен бота от @BotFather")
+    telegram.add_argument("--chat", help="номер чата")
+    telegram.add_argument("--find-chat", action="store_true", help="найти номер чата по сообщению боту")
+    telegram.add_argument("--test", action="store_true", help="отправить проверочное сообщение")
+    telegram.set_defaults(func=cmd_telegram)
 
     history = commands.add_parser("history", help="память о прошлых сборах")
     history.add_argument("-c", "--city", help="город сбора")
