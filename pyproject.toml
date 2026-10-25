@@ -18,6 +18,9 @@ mapsparser = ["data/*.json", "templates/*.toml"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# Без этого пакет виден только при запуске «python -m pytest»: сама команда pytest
+# корень проекта в sys.path не кладёт, и на сервере сборки тесты не находят mapsparser.
+pythonpath = ["."]
 
 [tool.ruff]
 line-length = 120
