@@ -22,6 +22,9 @@ class Preferences:
     size: str = "Обычно"
     sources: list[str] = field(default_factory=lambda: ["2gis", "yandex"])
     deep: bool = True  # открывать карточки 2ГИС ради почты
+    check_sites: bool = True  # заходить на сайты фирм
+    schedule_at: str = "09:00"
+    schedule_days: int = 1
     only_without_site: bool = False
     delay: float = 1.5
     output_dir: str = ""

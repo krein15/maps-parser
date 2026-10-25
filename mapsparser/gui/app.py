@@ -18,23 +18,28 @@ import subprocess
 import sys
 import threading
 import webbrowser
+from datetime import time as dt_time
 from pathlib import Path
 from tkinter import filedialog
 from typing import Any
 
 import customtkinter as ctk
 
-from .. import __version__
+from .. import __version__, scheduler
 from ..cache import Cache
 from ..cities import City, find, suggest
 from ..csvout import write as write_csv
 from ..excel import write_default
 from ..http import Stopped
 from ..models import LINK_TITLES, Place
+from ..monitor import CheckResult, Watch, add_watch, check_all, load_watchlist, remove_watch
+from ..niches import find as find_niche
+from ..niches import names as niche_names
 from ..normalize import pretty_phone
 from ..pipeline import Result, Settings, run
 from ..settings import APP_TITLE, BRAND, default_cache_dir, default_output_dir
 from ..sources import all_sources, get
+from ..telegram import Account, TelegramError, check_token, find_chat, load_account, save_account
 from .preferences import SIZE_LIMITS, SIZES, Preferences
 from .theme import (
     ACCENT,
@@ -44,6 +49,7 @@ from .theme import (
     DANGER,
     TEXT,
     TEXT_MUTED,
+    WARNING,
     font,
     mono,
     resource_path,
@@ -66,7 +72,8 @@ from .widgets import (
 BRAND_URL = "https://kreinstudio.ru/"
 ICON_SIZE = (44, 44)
 LOGO_SIZE = (233, 46)  # полный логотип 1651×326 с полем: рисунок 213 px — минимум из набора 200
-SEARCH_TAB, RESULTS_TAB, SETTINGS_TAB = "Поиск", "Результаты", "Настройки"
+SEARCH_TAB, RESULTS_TAB, MONITOR_TAB, SETTINGS_TAB = "Поиск", "Результаты", "Мониторинг", "Настройки"
+NICHE_PROMPT = "Ниша…"
 MAX_CARDS = 80
 SUBTITLE = "Организации города из 2ГИС и Яндекс Карт — с контактами и колонкой «чего у фирмы нет»"
 
@@ -77,39 +84,6 @@ FIRST_STEPS = (
     "3. Нажмите «Найти фирмы»: отчёт Excel откроется сам.\n\n"
     "Здесь будет виден ход сбора."
 )
-
-# Ниши, с которых обычно начинают холодный обзвон.
-NICHES = (
-    "кофейня",
-    "ресторан",
-    "автосервис",
-    "автомойка",
-    "шиномонтаж",
-    "стоматология",
-    "медицинский центр",
-    "ветеринарная клиника",
-    "салон красоты",
-    "барбершоп",
-    "фитнес-клуб",
-    "детский центр",
-    "автошкола",
-    "языковая школа",
-    "строительная компания",
-    "ремонт квартир",
-    "натяжные потолки",
-    "пластиковые окна",
-    "мебель на заказ",
-    "клининговая компания",
-    "грузоперевозки",
-    "типография",
-    "цветы",
-    "юридические услуги",
-    "бухгалтерские услуги",
-    "кадровое агентство",
-    "агентство недвижимости",
-    "турагентство",
-)
-
 
 class App(ctk.CTk):
     def __init__(self) -> None:
@@ -147,6 +121,7 @@ class App(ctk.CTk):
         self.tabs.grid(row=0, column=0, sticky="nsew", padx=(0, 16))
         self._build_search_tab(self.tabs.add(SEARCH_TAB))
         self._build_results_tab(self.tabs.add(RESULTS_TAB))
+        self._build_monitor_tab(self.tabs.add(MONITOR_TAB))
         self._build_settings_tab(self.tabs.add(SETTINGS_TAB))
         self.tabs.set(SEARCH_TAB)
         self._build_run_panel(content)
@@ -229,7 +204,7 @@ class App(ctk.CTk):
         self.query.grid(row=0, column=0, sticky="ew")
         self.niche = ctk.CTkOptionMenu(
             query_row,
-            values=["Ниша…", *NICHES],
+            values=[NICHE_PROMPT, *niche_names()],
             width=150,
             height=34,
             font=font(13),
@@ -239,7 +214,7 @@ class App(ctk.CTk):
             text_color=TEXT,
             dropdown_font=font(13),
         )
-        self.niche.set("Ниша…")
+        self.niche.set(NICHE_PROMPT)
         self.niche.grid(row=0, column=1, padx=(10, 0))
         field("Кого ищем", query_row)
 
@@ -300,7 +275,86 @@ class App(ctk.CTk):
         )
         self.results.pack(fill="both", expand=True)
 
+    def _scrollable(self, tab: ctk.CTkBaseClass) -> ctk.CTkScrollableFrame:
+        """Экран пользователя может быть невысоким: вкладки с несколькими карточками прокручиваются."""
+        frame = ctk.CTkScrollableFrame(
+            tab, fg_color="transparent", corner_radius=0, scrollbar_button_color=CARD_BORDER
+        )
+        frame.pack(fill="both", expand=True)
+        return frame
+
+    def _build_monitor_tab(self, tab: ctk.CTkBaseClass) -> None:
+        """Ниши под присмотром: раз в сутки проверить и прислать только новые фирмы."""
+        tab = self._scrollable(tab)
+        watches = SectionCard(
+            tab,
+            "Ниши под присмотром",
+            "Проверка сравнивает нишу с прошлым разом и шлёт в Telegram только новые фирмы. "
+            "У новой точки ещё нет ни сайта, ни отзывов — это самый горячий лид.",
+        )
+        watches.pack(fill="x")
+        buttons = ctk.CTkFrame(watches.body, fg_color="transparent")
+        buttons.pack(fill="x")
+        accent_button(buttons, "Добавить текущую", self._watch_add, width=180).pack(side="left")
+        neutral_button(buttons, "Убрать", self._watch_remove, width=110).pack(side="left", padx=8)
+        neutral_button(buttons, "Проверить сейчас", self._monitor_now, width=160).pack(side="left")
+        self.watch_list = ctk.CTkLabel(
+            watches.body, text="", font=font(12), text_color=TEXT_MUTED, anchor="w", justify="left"
+        )
+        self.watch_list.pack(fill="x", pady=(10, 0))
+        wrap_to_width(watches.body, [self.watch_list], margin=10)
+
+        chat = SectionCard(tab, "Telegram", "Токен выдаёт @BotFather. Он хранится рядом с настройками программы.")
+        chat.pack(fill="x", pady=(14, 0))
+        token_row = ctk.CTkFrame(chat.body, fg_color="transparent")
+        token_row.pack(fill="x")
+        token_row.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(token_row, text="Токен", font=font(13), text_color=TEXT, anchor="w").grid(
+            row=0, column=0, sticky="w", padx=(0, 10)
+        )
+        self.token = entry(token_row, "123456789:AAE…", width=280)
+        self.token.configure(show="•")
+        self.token.grid(row=0, column=1, sticky="ew")
+        neutral_button(token_row, "Подключить", self._telegram_connect, width=130).grid(row=0, column=2, padx=(10, 0))
+
+        chat_row = ctk.CTkFrame(chat.body, fg_color="transparent")
+        chat_row.pack(fill="x", pady=(8, 0))
+        chat_row.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(chat_row, text="Чат", font=font(13), text_color=TEXT, anchor="w").grid(
+            row=0, column=0, sticky="w", padx=(0, 10)
+        )
+        self.chat = entry(chat_row, "номер чата", width=280)
+        self.chat.grid(row=0, column=1, sticky="ew")
+        neutral_button(chat_row, "Найти мой чат", self._telegram_find_chat, width=130).grid(
+            row=0, column=2, padx=(10, 0)
+        )
+        self.telegram_state = ctk.CTkLabel(chat.body, text="", font=font(12), text_color=TEXT_MUTED, anchor="w")
+        self.telegram_state.pack(fill="x", pady=(8, 0))
+
+        timing = SectionCard(tab, "Расписание", "Задание Планировщика Windows: пропущенную проверку догонит.")
+        timing.pack(fill="x", pady=(14, 0))
+        timing_row = ctk.CTkFrame(timing.body, fg_color="transparent")
+        timing_row.pack(fill="x")
+        label(timing_row, "Проверять в").pack(side="left")
+        self.schedule_at = entry(timing_row, "09:00", width=80)
+        set_entry(self.schedule_at, self.prefs.schedule_at)
+        self.schedule_at.pack(side="left", padx=8)
+        label(timing_row, "раз в").pack(side="left")
+        self.schedule_days = entry(timing_row, "1", width=50)
+        set_entry(self.schedule_days, str(self.prefs.schedule_days))
+        self.schedule_days.pack(side="left", padx=8)
+        label(timing_row, "сут.").pack(side="left")
+        accent_button(timing_row, "Включить", self._schedule_on, width=120).pack(side="right")
+        neutral_button(timing_row, "Выключить", self._schedule_off, width=120).pack(side="right", padx=8)
+        self.schedule_state = ctk.CTkLabel(
+            timing.body, text="", font=font(12), text_color=TEXT_MUTED, anchor="w", justify="left"
+        )
+        self.schedule_state.pack(fill="x", pady=(10, 0))
+
+        self.after(500, self._refresh_monitor)
+
     def _build_settings_tab(self, tab: ctk.CTkBaseClass) -> None:
+        tab = self._scrollable(tab)
         card = SectionCard(tab, "Как собирать", "Значения по умолчанию подходят большинству.")
         card.pack(fill="x")
         body = card.body
@@ -308,6 +362,10 @@ class App(ctk.CTk):
         self.deep = ctk.BooleanVar(value=self.prefs.deep)
         checkbox(
             body, "Открывать карточки 2ГИС ради почты (медленнее, но находятся e-mail)", self.deep
+        ).pack(anchor="w", pady=4)
+        self.check_sites = ctk.BooleanVar(value=self.prefs.check_sites)
+        checkbox(
+            body, "Заходить на сайты фирм: там находятся почты и видно, работает ли сайт", self.check_sites
         ).pack(anchor="w", pady=4)
         self.use_cache = ctk.BooleanVar(value=self.prefs.use_cache)
         checkbox(body, "Помнить скачанные страницы сутки", self.use_cache).pack(anchor="w", pady=4)
@@ -407,6 +465,7 @@ class App(ctk.CTk):
             delay=self._delay_value(),
             use_cache=self.use_cache.get(),
             required_gaps=("website",) if self.only_without_site.get() else (),
+            check_sites=self.check_sites.get(),
         )
         self._remember(city, query)
         self._clear_log()
@@ -451,6 +510,8 @@ class App(ctk.CTk):
                     self._say(message, level)
                 elif kind == "done":
                     self._finished(*payload)
+                elif kind == "monitored":
+                    self._monitored(payload)
                 elif kind == "stopped":
                     self._say("Остановлено.", "warning")
                     self._idle()
@@ -554,12 +615,170 @@ class App(ctk.CTk):
         line.pack(fill="x", padx=14, pady=(0, 10))
         wrap_to_width(card, [line], margin=30)
 
+    # ------------------------------------------------------------------ мониторинг
+
+    def _refresh_monitor(self) -> None:
+        """Подтягивает в окно всё, что знает ядро: наблюдения, Telegram, расписание."""
+        watches = load_watchlist()
+        self.watch_list.configure(
+            text="\n".join(f"• {watch.title} — до {watch.limit} фирм" for watch in watches)
+            or "Пока пусто. Задайте город и нишу на вкладке «Поиск» и нажмите «Добавить текущую».",
+            text_color=TEXT if watches else TEXT_MUTED,
+        )
+        account = load_account()
+        set_entry(self.token, account.token)
+        set_entry(self.chat, account.chat)
+        self.telegram_state.configure(
+            text="Подключён — новые фирмы будут приходить в Telegram." if account.ready
+            else "Не подключён: без токена и чата проверки будут молча копиться в истории.",
+            text_color=TEXT_MUTED if account.ready else WARNING,
+        )
+        try:
+            state = scheduler.status()
+        except scheduler.SchedulerError as error:
+            self.schedule_state.configure(text=str(error), text_color=TEXT_MUTED)
+            return
+        if not state.exists:
+            self.schedule_state.configure(text="Задание не создано.", text_color=TEXT_MUTED)
+            return
+        self.schedule_state.configure(
+            text=(
+                f"Задание {'включено' if state.enabled else 'выключено'}. "
+                f"Следующий запуск: {state.next_run or '—'}. "
+                f"Прошлый: {state.last_run or '—'} ({state.last_result or '—'})"
+            ),
+            text_color=TEXT if state.enabled else TEXT_MUTED,
+        )
+
+    def _current_watch(self) -> Watch | None:
+        city = find(self.city.get().strip())
+        query = self.query.get().strip()
+        if not city or not query:
+            self._say("Сначала задайте город и нишу на вкладке «Поиск».", "error")
+            return None
+        return Watch(
+            city=city.name,
+            query=query,
+            limit=SIZE_LIMITS.get(self.size.get(), 300),
+            sources=tuple(key for key, var in self.source_vars.items() if var.get()),
+            deep=self.deep.get(),
+            check_sites=self.check_sites.get(),
+        )
+
+    def _watch_add(self) -> None:
+        watch = self._current_watch()
+        if not watch:
+            return
+        add_watch(watch)
+        self._say(f"Под присмотром: {watch.title}. Первая проверка запомнит нишу, со второй пойдут новые фирмы.")
+        self._refresh_monitor()
+
+    def _watch_remove(self) -> None:
+        watch = self._current_watch()
+        if not watch:
+            return
+        self._say("Убрано из наблюдений." if remove_watch(watch.city, watch.query) else "Такой ниши в списке нет.")
+        self._refresh_monitor()
+
+    def _monitor_now(self) -> None:
+        if self.worker and self.worker.is_alive():
+            return
+        if not load_watchlist():
+            self._say("Список наблюдений пуст.", "error")
+            return
+        self._clear_log()
+        self._say("Проверяю ниши под присмотром…")
+        self.find_button.configure(state="disabled")
+        self.stop_button.configure(state="normal")
+        self.cancel.clear()
+        self.worker = threading.Thread(target=self._monitor_work, daemon=True)
+        self.worker.start()
+
+    def _monitor_work(self) -> None:
+        try:
+            results = check_all(log_message=lambda message: self.events.put(("log", ("info", message))))
+            self.events.put(("monitored", results))
+        except Exception as error:
+            self.events.put(("error", str(error)))
+
+    def _monitored(self, results: list[CheckResult]) -> None:
+        for outcome in results:
+            if outcome.error:
+                self._say(f"{outcome.watch.title}: {outcome.error}", "warning")
+            else:
+                self._say(
+                    f"{outcome.watch.title}: фирм {outcome.found}, новых {outcome.new_count}, "
+                    f"отправлено {outcome.sent}"
+                )
+        self._idle()
+
+    def _telegram_connect(self) -> None:
+        token = self.token.get().strip()
+        if not token:
+            self._say("Вставьте токен бота из сообщения @BotFather.", "error")
+            return
+        try:
+            name = check_token(token)
+        except TelegramError as error:
+            self._say(str(error), "error")
+            return
+        save_account(Account(token=token, chat=self.chat.get().strip()))
+        self._say(f"Бот @{name} подключён.")
+        self._refresh_monitor()
+
+    def _telegram_find_chat(self) -> None:
+        token = self.token.get().strip()
+        if not token:
+            self._say("Сначала подключите бота.", "error")
+            return
+        try:
+            chat = find_chat(token)
+        except TelegramError as error:
+            self._say(str(error), "error")
+            return
+        set_entry(self.chat, chat)
+        save_account(Account(token=token, chat=chat))
+        self._say(f"Ваш чат: {chat}")
+        self._refresh_monitor()
+
+    def _schedule_on(self) -> None:
+        try:
+            hours, _, minutes = self.schedule_at.get().strip().partition(":")
+            at = dt_time(int(hours), int(minutes or 0))
+            days = max(1, int(self.schedule_days.get().strip() or 1))
+        except ValueError:
+            self._say("Время нужно вида 09:00, периодичность — числом суток.", "error")
+            return
+        try:
+            scheduler.create(at, days=days)
+        except scheduler.SchedulerError as error:
+            self._say(str(error), "error")
+            return
+        self.prefs.schedule_at = f"{at:%H:%M}"
+        self.prefs.schedule_days = days
+        self._say(f"Проверки включены: каждые {days} сут. в {at:%H:%M}.")
+        self._refresh_monitor()
+
+    def _schedule_off(self) -> None:
+        try:
+            scheduler.disable()
+        except scheduler.SchedulerError as error:
+            self._say(str(error), "error")
+            return
+        self._say("Проверки выключены.")
+        self._refresh_monitor()
+
     # ------------------------------------------------------------------ мелочи
 
     def _pick_niche(self, value: str) -> None:
-        if value != "Ниша…":
-            set_entry(self.query, value)
-            self.niche.set("Ниша…")
+        """Ниша — это набор запросов: в поле пишем её название, остальное знает ядро."""
+        if value == NICHE_PROMPT:
+            return
+        set_entry(self.query, value)
+        self.niche.set(NICHE_PROMPT)
+        niche = find_niche(value)
+        if niche:
+            self._say(f"Ниша «{niche.name}» — это {len(niche.queries)} запроса: {', '.join(niche.queries)}")
 
     def _delay_value(self) -> float:
         try:
@@ -619,6 +838,7 @@ class App(ctk.CTk):
         self.prefs.deep = self.deep.get()
         self.prefs.only_without_site = self.only_without_site.get()
         self.prefs.use_cache = self.use_cache.get()
+        self.prefs.check_sites = self.check_sites.get()
         self.prefs.open_report = self.open_report.get()
         self.prefs.delay = self._delay_value()
 
