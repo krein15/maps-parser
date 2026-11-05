@@ -5,12 +5,15 @@
 экранированный по правилам JavaScript: снимаем только этот внешний слой,
 всё остальное разберёт `json.loads`.
 
-Два потолка, которые определяют всю работу сборщика:
- - выдача отдаёт 12 организаций на страницу и не больше пяти страниц на запрос;
- - контактов в выдаче нет вообще — почта, сайт и соцсети появляются только в карточке.
+Что определяет работу сборщика:
+ - выдача отдаёт 12 организаций на страницу и листается до конца: с ноября 2026 года
+   2ГИС больше не обрывает её на пятой странице;
+ - контактов в выдаче нет вообще — почта, сайт и соцсети появляются только в карточке,
+   поэтому на каждую организацию нужен отдельный запрос.
 
-Первый обходится плитками карты (вьюпорт в адресе строго сужает поиск), второй —
-отдельным запросом на организацию.
+Раньше выдача обрывалась на пятой странице: с шестой сервер молча возвращал первую.
+Сборщик по-прежнему это замечает и, если потолок вернётся, обходит его плитками карты
+(вьюпорт в адресе строго сужает поиск).
 """
 
 from __future__ import annotations
@@ -46,7 +49,13 @@ from .base import Collector, Report, SearchRequest, Source
 KEY = "2gis"
 SITE = "https://2gis.ru"
 PAGE_SIZE = 12
-MAX_PAGES = 5  # дальше сервер молча возвращает первую страницу
+# Каждая плитка листается до потолка заново, так что плиток нужно с запасом: участки
+# неравны, и в центре города организаций больше, чем на окраине.
+_TILE_SPARE = 1.8
+_BROKEN = -1  # выдача не долистана из-за сетевой ошибки
+# Страница без новых организаций ещё не конец: в глубине выдачи попадаются страницы из одних
+# домов и улиц. Конец — когда так идёт несколько страниц подряд.
+_EMPTY_PAGES_IN_A_ROW = 3
 
 _STATE_RE = re.compile(r"var\s+initialState\s*=\s*JSON\.parse\('(.*?)'\);", re.S)
 _ESCAPES = {"n": "\n", "r": "\r", "t": "\t", "b": "\b", "f": "\f", "v": "\v", "0": "\0"}
@@ -263,7 +272,7 @@ def tiles_for(bounds: tuple[float, float, float, float], count: int) -> list[tup
 
 
 class TwoGisCollector(Collector):
-    """Сбор по 2ГИС: сперва город целиком, потом плитки, потом карточки."""
+    """Сбор по 2ГИС: выдача по всему городу, плитки — только если она оборвалась, потом карточки."""
 
     def search_url(self, request: SearchRequest, page: int, tile: tuple[float, float, int] | None) -> str:
         url = f"{SITE}/{request.city.alias}/search/{quote(request.query)}"
@@ -281,11 +290,12 @@ class TwoGisCollector(Collector):
     def collect(self, request: SearchRequest) -> Report:
         report = Report()
         found: dict[str, Company] = {}
-        for tile in self._tiles(request, report):
-            if len(found) >= request.limit:
-                break
-            self._collect_tile(request, tile, found, report)
-        report.exhaustive = len(found) < request.limit
+        ceiling = self._collect_tile(request, None, found, report)
+        covered = ceiling is None
+        if ceiling and ceiling > 0 and len(found) < request.limit:
+            covered = self._collect_tiles(request, ceiling, found, report)
+        # «Показал всё» — только если выдача кончилась сама, а не оборвалась на потолке.
+        report.exhaustive = covered and len(found) < request.limit
         self.log(f"2ГИС: в выдаче {len(found)} организаций")
 
         companies = list(self.fresh(found).values())[: request.limit]
@@ -296,21 +306,28 @@ class TwoGisCollector(Collector):
         report.cards = sum(1 for c in companies if c.detailed)
         return report
 
-    def _tiles(self, request: SearchRequest, report: Report) -> list[tuple[float, float, int] | None]:
-        """Сначала город целиком (это самые заметные места), затем плитки, если нужно больше."""
-        tiles: list[tuple[float, float, int] | None] = [None]
-        if request.limit <= PAGE_SIZE * MAX_PAGES:
-            return tiles
-        wanted = request.tiles or math.ceil(request.limit / (PAGE_SIZE * MAX_PAGES) * 1.8)
+    def _collect_tiles(self, request: SearchRequest, ceiling: int, found: dict[str, Company], report: Report) -> bool:
+        """Запасной путь на случай, если 2ГИС снова обрывает выдачу: режет город на участки.
+
+        Возвращает True, только если каждый участок долистан до конца — тогда город показан целиком.
+        """
+        per_query = PAGE_SIZE * ceiling
+        wanted = request.tiles or math.ceil(request.limit / per_query * _TILE_SPARE)
         bounds = self.city_bounds(request.city)
         report.requests += 1
         if not bounds:
-            self.log("2ГИС: границы города не нашлись — соберу только первую сотню мест")
-            return tiles
+            self.log(f"2ГИС: границы города не нашлись — соберу только первые {per_query} мест")
+            return False
         grid = tiles_for(bounds, min(wanted, 100))
         spots = plural(len(grid), "участок", "участка", "участков")
-        self.log(f"2ГИС: выдача отдаёт 60 мест на запрос, поэтому режу город на {spots}")
-        return tiles + list(grid)
+        self.log(f"2ГИС: выдача обрывается на {per_query} местах, поэтому режу город на {spots}")
+        whole = True
+        for tile in grid:
+            if len(found) >= request.limit:
+                break
+            if self._collect_tile(request, tile, found, report) is not None:
+                whole = False  # участок тоже упёрся в потолок или не открылся
+        return whole
 
     def _collect_tile(
         self,
@@ -318,30 +335,43 @@ class TwoGisCollector(Collector):
         tile: tuple[float, float, int] | None,
         found: dict[str, Company],
         report: Report,
-    ) -> None:
-        for page in range(1, MAX_PAGES + 1):
-            if len(found) >= request.limit:
-                return
+    ) -> int | None:
+        """Листает выдачу до конца.
+
+        None — выдача кончилась или набрано сколько нужно; число страниц — выдача оборвалась
+        на потолке; `_BROKEN` — не долистали из-за сетевой ошибки.
+        """
+        page = 0
+        empty = 0
+        while len(found) < request.limit:
+            page += 1
             url = self.search_url(request, page, tile)
             try:
                 state = parse_state(self.fetcher.get(url))
             except FetchError as exc:
                 self.log(f"2ГИС: {exc}")
-                return
+                return _BROKEN
             report.requests += 1
             report.pages += 1
             summary = search_summary(state)
             if page > 1 and summary.get("currentPage") != page:
-                report.capped = True  # сервер вернул первую страницу: потолок выдачи
-                return
+                # Сервер вместо следующей страницы вернул первую: это потолок, а не конец выдачи.
+                report.capped = True
+                return page - 1
+            if page == 1 and tile is None and summary.get("total"):
+                self.log(f"2ГИС: по запросу «{request.query}» в выдаче {summary['total']} мест")
             new = 0
             for key, data in entities(state).items():
                 company = company_from(data, key, request.city)
                 if company and company.source_id not in found:
                     found[company.source_id] = company
                     new += 1
-            if not new or summary.get("pages", 0) <= page:
-                return
+            empty = 0 if new else empty + 1
+            if empty >= _EMPTY_PAGES_IN_A_ROW or summary.get("pages", 0) <= page:
+                return None
+            if page % 25 == 0:
+                self.log(f"2ГИС: пролистано {page} из {summary.get('pages')} страниц")
+        return None
 
     def _enrich_all(self, companies: list[Company], report: Report) -> list[Company]:
         """Открывает карточку каждой организации: только там есть почта, сайт и соцсети."""
@@ -384,5 +414,5 @@ TwoGis = Source(
     gives=(PHONE, EMAIL, WEBSITE, VK, TELEGRAM, WHATSAPP, INSTAGRAM, ODNOKLASSNIKI, YOUTUBE, VIBER),
     page_size=PAGE_SIZE,
     needs_city_alias=True,  # без короткого имени города 2ГИС отвечает 404
-    note="12 мест на странице, не больше 5 страниц на запрос; контакты — только в карточке",
+    note="12 мест на странице, выдача листается до конца; контакты — только в карточке",
 )

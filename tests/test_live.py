@@ -59,13 +59,17 @@ def test_2gis_card_still_has_contacts(fetcher: Fetcher) -> None:
     assert any(company.phones for company in with_contacts)
 
 
-def test_2gis_page_ceiling_is_still_five(fetcher: Fetcher) -> None:
-    """Если потолок изменится, сбор плитками станет лишней работой — это надо знать."""
+def test_2gis_lists_past_the_fifth_page(fetcher: Fetcher) -> None:
+    """До ноября 2026 года выдача 2ГИС обрывалась на пятой странице, теперь листается до конца.
+
+    Сборщик заметит возврат потолка и сам перейдёт на плитки, но это вдвое больше запросов
+    и повод перепроверить плитки на большом сборе — поэтому канарейка должна об этом сказать.
+    """
     collector = TwoGisCollector(fetcher)
     request = SearchRequest(query="магазин", city=CITY, limit=12, deep=False)
     sixth = collector.search_url(request, 6, None)
-    state = twogis_state(fetcher.get(sixth))
-    assert search_summary(state).get("currentPage") == 1, "2ГИС стал отдавать шестую страницу — потолок изменился"
+    summary = search_summary(twogis_state(fetcher.get(sixth)))
+    assert summary.get("currentPage") == 6, "2ГИС снова обрывает выдачу на пятой странице — сбор ушёл на плитки"
 
 
 def test_yandex_still_serves_its_state(fetcher: Fetcher) -> None:

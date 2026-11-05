@@ -373,7 +373,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     collect.add_argument("--site-limit", type=int, default=400, help="сколько сайтов проверять за сбор")
     collect.add_argument("--delay", type=float, default=1.5, help="пауза между запросами, секунды")
-    collect.add_argument("--tiles", type=int, default=0, help="на сколько участков резать город в 2ГИС")
+    collect.add_argument("--tiles", type=int, default=0, help="участков в 2ГИС, если он снова оборвёт выдачу")
     collect.add_argument("--min-score", type=int, default=0, help="оставить фирмы с оценкой не ниже")
     collect.add_argument(
         "--gap", action="append", choices=[gap.code for gap in GAPS], help="оставить только с этим пробелом"
